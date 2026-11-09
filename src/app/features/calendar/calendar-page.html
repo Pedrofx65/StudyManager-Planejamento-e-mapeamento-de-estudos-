@@ -1,0 +1,200 @@
+<app-page-header title="Calendário" subtitle="Prazos, provas, metas e sessões de estudo em um só lugar.">
+  <button type="button" class="btn btn-primary" (click)="newEvent()"><i class="bi bi-plus-lg me-1"></i>Novo evento</button>
+</app-page-header>
+
+<div class="legend" role="group" aria-label="Tipos exibidos">
+  @for (kind of kinds; track kind) {
+    <button
+      type="button"
+      class="legend-item"
+      [class.off]="hiddenKinds().has(kind)"
+      [attr.aria-pressed]="!hiddenKinds().has(kind)"
+      (click)="toggleKind(kind)"
+    >
+      <span class="color-dot" [style.background]="meta[kind].color"></span>{{ meta[kind].label }}
+    </button>
+  }
+</div>
+
+<div class="calendar-layout">
+  <section class="sm-card calendar-card">
+    <div class="calendar-nav">
+      <h2 class="month-title">{{ month() | date: 'MMMM yyyy' }}</h2>
+      <div class="d-flex gap-1">
+        <button type="button" class="btn btn-ghost btn-sm" (click)="goToday()">Hoje</button>
+        <button type="button" class="btn btn-icon" aria-label="Mês anterior" (click)="prevMonth()"><i class="bi bi-chevron-left"></i></button>
+        <button type="button" class="btn btn-icon" aria-label="Próximo mês" (click)="nextMonth()"><i class="bi bi-chevron-right"></i></button>
+      </div>
+    </div>
+
+    <div class="calendar-grid" role="grid" [attr.aria-label]="month() | date: 'MMMM yyyy'">
+      <div class="weekday-row" role="row">
+        @for (w of weekdays; track w) {
+          <div class="weekday" role="columnheader">{{ w }}</div>
+        }
+      </div>
+      @for (week of weeks(); track $index) {
+        <div class="week-row" role="row">
+          @for (day of week; track day.date) {
+            <button
+              type="button"
+              role="gridcell"
+              class="day-cell"
+              [class.outside]="!day.inMonth"
+              [class.today]="day.isToday"
+              [class.selected]="day.date === selectedDate()"
+              [class.has-overdue]="day.hasOverdue"
+              [class.has-upcoming]="day.hasUpcoming && !day.hasOverdue"
+              [attr.aria-label]="(day.date | date: 'd \'de\' MMMM') + ', ' + day.items.length + ' itens'"
+              [attr.aria-selected]="day.date === selectedDate()"
+              (click)="selectDay(day.date)"
+            >
+              <span class="day-number">{{ day.day }}</span>
+              <span class="day-items">
+                @for (item of day.items.slice(0, 3); track item.id) {
+                  <span class="day-item" [class.done]="item.done" [class.overdue]="item.overdue" [style.--kind-color]="meta[item.kind].color">
+                    <i class="bi" [class]="meta[item.kind].icon"></i><span class="truncate">{{ item.title }}</span>
+                  </span>
+                }
+                @if (day.items.length > 3) {
+                  <span class="day-more">+{{ day.items.length - 3 }}</span>
+                }
+              </span>
+              @if (day.items.length) {
+                <span class="day-dots">
+                  @for (item of day.items.slice(0, 4); track item.id) {
+                    <span class="color-dot" [style.background]="item.overdue ? 'var(--sm-danger)' : meta[item.kind].color"></span>
+                  }
+                </span>
+              }
+            </button>
+          }
+        </div>
+      }
+    </div>
+  </section>
+
+  <aside class="gap-grid">
+    @if (editingEventId() !== null) {
+      <section class="sm-card">
+        <div class="sm-card-header">
+          <h2 class="sm-card-title">{{ editingEventId() ? 'Editar evento' : 'Novo evento' }}</h2>
+          <button type="button" class="btn btn-icon btn-sm" aria-label="Fechar" (click)="cancelEvent()"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <form [formGroup]="form" (ngSubmit)="saveEvent()" novalidate class="row g-2">
+          <div class="col-12">
+            <label class="form-label" for="ev-title">Título *</label>
+            <input id="ev-title" class="form-control" formControlName="title" placeholder="Ex.: Prova de Direito Administrativo" [class.is-invalid]="isInvalid('title')" />
+            <app-field-error [control]="form.controls.title" [show]="isInvalid('title')" />
+          </div>
+          <div class="col-12">
+            <label class="form-label" for="ev-type">Tipo</label>
+            <select id="ev-type" class="form-select" formControlName="type">
+              @for (t of eventTypes; track t) {
+                <option [value]="t">{{ meta[t].label }}</option>
+              }
+            </select>
+          </div>
+          <div class="col-7">
+            <label class="form-label" for="ev-date">Data *</label>
+            <input id="ev-date" type="date" class="form-control" formControlName="date" [class.is-invalid]="isInvalid('date')" />
+            <app-field-error [control]="form.controls.date" [show]="isInvalid('date')" />
+          </div>
+          <div class="col-5">
+            <label class="form-label" for="ev-time">Horário</label>
+            <input id="ev-time" type="time" class="form-control" formControlName="time" />
+          </div>
+          <div class="col-12">
+            <label class="form-label" for="ev-subject">Matéria</label>
+            <select id="ev-subject" class="form-select" formControlName="subjectId">
+              <option value="">Sem matéria</option>
+              @for (s of subjects.sorted(); track s.id) {
+                <option [value]="s.id">{{ s.name }}</option>
+              }
+            </select>
+          </div>
+          <div class="col-12">
+            <label class="form-label" for="ev-desc">Descrição</label>
+            <textarea id="ev-desc" class="form-control" rows="2" formControlName="description"></textarea>
+          </div>
+          <div class="col-12 d-flex gap-2 justify-content-end pt-1">
+            @if (editingEventId()) {
+              <button type="button" class="btn btn-danger-soft me-auto" (click)="deleteEvent()" aria-label="Excluir evento"><i class="bi bi-trash"></i></button>
+            }
+            <button type="button" class="btn btn-ghost" (click)="cancelEvent()">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Salvar</button>
+          </div>
+        </form>
+      </section>
+    }
+
+    <section class="sm-card">
+      <div class="sm-card-header">
+        <h2 class="sm-card-title day-title">{{ selectedDate() | date: "EEEE, d 'de' MMMM" }}</h2>
+        <button type="button" class="btn btn-icon btn-sm" aria-label="Novo evento neste dia" title="Novo evento neste dia" (click)="newEvent()"><i class="bi bi-plus-lg"></i></button>
+      </div>
+      @if (selectedItems().length === 0) {
+        <app-empty-state icon="bi-calendar" title="Nada neste dia" [compact]="true">
+          <button type="button" class="btn btn-ghost btn-sm" (click)="newEvent()">Adicionar evento</button>
+        </app-empty-state>
+      } @else {
+        <ul class="sm-list">
+          @for (item of selectedItems(); track item.id) {
+            <li class="agenda-item">
+              @if (canToggle(item)) {
+                <input class="form-check-input mt-0" type="checkbox" [checked]="item.done" (change)="toggleDone(item)" [attr.aria-label]="'Concluir ' + item.title" />
+              } @else {
+                <i class="bi kind-icon" [class]="meta[item.kind].icon" [style.color]="meta[item.kind].color"></i>
+              }
+              <button type="button" class="agenda-link min-w-0 flex-grow-1" (click)="openItem(item)">
+                <span class="d-block truncate" [class.done]="item.done">{{ item.title }}</span>
+                <span class="text-subtle small">
+                  {{ meta[item.kind].label }}@if (item.time) { · {{ item.time }} }
+                </span>
+              </button>
+              @if (item.overdue) {
+                <span class="sm-chip danger">Atrasado</span>
+              } @else if (item.color) {
+                <span class="color-dot" [style.background]="item.color"></span>
+              }
+            </li>
+          }
+        </ul>
+      }
+    </section>
+
+    <section class="sm-card">
+      <h2 class="sm-card-title mb-2">Prazos</h2>
+      @if (overdue().length === 0 && upcoming().length === 0) {
+        <p class="text-muted small mb-0">Nenhum prazo atrasado ou próximo. <i class="bi bi-emoji-smile"></i></p>
+      }
+      @if (overdue().length) {
+        <div class="small-caps text-danger-sm mt-2 mb-1">Atrasados</div>
+        <ul class="sm-list">
+          @for (item of overdue(); track item.id) {
+            <li>
+              <button type="button" class="agenda-link min-w-0 flex-grow-1" (click)="selectDay(item.date)">
+                <span class="d-block truncate">{{ item.title }}</span>
+              </button>
+              <span class="sm-chip danger">{{ item.date | relativeDay }}</span>
+            </li>
+          }
+        </ul>
+      }
+      @if (upcoming().length) {
+        <div class="small-caps text-warning-sm mt-3 mb-1">Próximos dias</div>
+        <ul class="sm-list">
+          @for (item of upcoming(); track item.id) {
+            <li>
+              <button type="button" class="agenda-link min-w-0 flex-grow-1" (click)="selectDay(item.date)">
+                <span class="d-block truncate">{{ item.title }}</span>
+              </button>
+              <span class="sm-chip warning">{{ item.date | relativeDay }}</span>
+            </li>
+          }
+        </ul>
+      }
+      <a routerLink="/settings" class="small d-inline-block mt-2 text-muted">Ajustar o que é “próximo”</a>
+    </section>
+  </aside>
+</div>

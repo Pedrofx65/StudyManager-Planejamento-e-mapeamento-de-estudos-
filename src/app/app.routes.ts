@@ -40,5 +40,6 @@ export const routes: Routes = [
       { path: ':id/edit', title: title('Editar sessão'), loadComponent: () => import('./features/history/session-form').then((m) => m.SessionForm) },
     ],
   },
+  { path: 'calendar', title: title('Calendário'), loadComponent: () => import('./features/calendar/calendar-page').then((m) => m.CalendarPage) },
   { path: '**', redirectTo: '' },
 ];
