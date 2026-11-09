@@ -1,0 +1,169 @@
+<header class="dash-header">
+  <div>
+    <h1 class="dash-title">{{ greeting() }}</h1>
+    <p class="text-muted mb-0">Aqui está a visão geral dos seus estudos.</p>
+  </div>
+  <a routerLink="/timer" class="btn btn-primary"><i class="bi bi-play-fill me-1"></i>Começar a estudar</a>
+</header>
+
+@if (!hasData()) {
+  <section class="sm-card welcome">
+    <app-empty-state
+      icon="bi-rocket-takeoff"
+      title="Bem-vindo ao Study Manager"
+      message="Comece cadastrando suas matérias e projetos, ou carregue dados de demonstração para explorar a aplicação."
+    >
+      <div class="d-flex flex-wrap gap-2 justify-content-center">
+        <a routerLink="/subjects/new" class="btn btn-primary btn-sm"><i class="bi bi-book me-1"></i>Cadastrar matéria</a>
+        <a routerLink="/projects/new" class="btn btn-ghost btn-sm"><i class="bi bi-folder2 me-1"></i>Criar projeto</a>
+        <button type="button" class="btn btn-ghost btn-sm" (click)="loadDemo()"><i class="bi bi-magic me-1"></i>Carregar demonstração</button>
+      </div>
+    </app-empty-state>
+  </section>
+} @else {
+  <div class="stats-grid">
+    <app-stat-card label="Projetos" [value]="stats().projects" icon="bi-folder2" tone="primary" [hint]="stats().activeProjects + ' em andamento'" />
+    <app-stat-card label="Tarefas pendentes" [value]="stats().pending" icon="bi-list-task" tone="warning" [hint]="stats().overdue ? stats().overdue + ' atrasadas' : 'Nenhuma atrasada'" />
+    <app-stat-card label="Tarefas concluídas" [value]="stats().done" icon="bi-check2-circle" tone="success" />
+    <app-stat-card label="Matérias em andamento" [value]="stats().subjectsInProgress" icon="bi-book" tone="primary" [hint]="'de ' + stats().subjects + ' cadastradas'" />
+    <app-stat-card label="Horas de estudo" [value]="formatHours(stats().totalSeconds / 3600)" icon="bi-clock" tone="primary" [hint]="stats().sessions + ' sessões'" />
+    <app-stat-card label="Progresso geral" [value]="stats().progress + '%'" icon="bi-graph-up-arrow" tone="success" hint="Média das matérias" />
+  </div>
+
+  <div class="charts-grid">
+    <section class="sm-card">
+      <div class="sm-card-header align-items-start">
+        <div>
+          <h2 class="sm-card-title">Horas estudadas por semana</h2>
+          <div class="chart-sub">
+            Esta semana: <strong>{{ formatHours(weekly().current) }}</strong>
+            · meta {{ weeklyGoal() }}h · média anterior {{ formatHours(weekly().average) }}
+          </div>
+        </div>
+        <a routerLink="/history" class="small">Histórico</a>
+      </div>
+      @if (stats().sessions === 0) {
+        <app-empty-state icon="bi-bar-chart" title="Sem sessões registradas" message="Use o cronômetro para alimentar este gráfico." [compact]="true" />
+      } @else {
+        <app-bar-chart
+          [labels]="weekly().labels"
+          [values]="weekly().values"
+          colors="#3987e5"
+          [highlightIndex]="weekly().labels.length - 1"
+          [format]="formatHours"
+          [height]="240"
+          ariaLabel="Horas estudadas nas últimas 8 semanas"
+        />
+      }
+    </section>
+
+    <section class="sm-card">
+      <div class="sm-card-header align-items-start">
+        <div>
+          <h2 class="sm-card-title">Tempo por matéria</h2>
+          <div class="chart-sub">Total acumulado de todas as sessões</div>
+        </div>
+        <a routerLink="/subjects" class="small">Matérias</a>
+      </div>
+      @if (bySubject().labels.length === 0) {
+        <app-empty-state icon="bi-pie-chart" title="Nenhum tempo registrado" message="Finalize sessões vinculadas a matérias para ver a distribuição." [compact]="true" />
+      } @else {
+        <app-bar-chart
+          [labels]="bySubject().labels"
+          [values]="bySubject().values"
+          [colors]="bySubject().colors"
+          [horizontal]="true"
+          [format]="formatHours"
+          ariaLabel="Distribuição do tempo de estudo por matéria"
+        />
+      }
+    </section>
+  </div>
+
+  <div class="lists-grid">
+    <section class="sm-card">
+      <div class="sm-card-header">
+        <h2 class="sm-card-title">Próximos prazos</h2>
+        <a routerLink="/calendar" class="small">Calendário</a>
+      </div>
+      @if (deadlines().length === 0) {
+        <app-empty-state icon="bi-calendar-check" title="Nenhum prazo próximo" message="Você está em dia!" [compact]="true" />
+      } @else {
+        <ul class="sm-list">
+          @for (item of deadlines(); track item.id) {
+            <li>
+              <i class="bi list-icon" [class]="meta[item.kind].icon" [style.color]="meta[item.kind].color" [attr.title]="meta[item.kind].label"></i>
+              <div class="min-w-0 flex-grow-1">
+                @if (item.link) {
+                  <a class="d-block truncate text-reset" [routerLink]="item.link">{{ item.title }}</a>
+                } @else {
+                  <a class="d-block truncate text-reset" routerLink="/calendar">{{ item.title }}</a>
+                }
+                <span class="text-subtle small">{{ item.date | date: 'dd/MM/yyyy' }}@if (item.time) { · {{ item.time }} }</span>
+              </div>
+              <span class="sm-chip" [class.danger]="item.overdue" [class.warning]="!item.overdue">
+                @if (item.overdue) { <i class="bi bi-exclamation-circle"></i> }
+                {{ item.date | relativeDay }}
+              </span>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+
+    <section class="sm-card">
+      <div class="sm-card-header">
+        <h2 class="sm-card-title">Tarefas prioritárias</h2>
+        <a routerLink="/tasks" class="small">Ver todas</a>
+      </div>
+      @if (priorityTasks().length === 0) {
+        <app-empty-state icon="bi-check2-all" title="Nenhuma tarefa pendente" [compact]="true">
+          <a routerLink="/tasks/new" class="btn btn-ghost btn-sm">Nova tarefa</a>
+        </app-empty-state>
+      } @else {
+        <ul class="sm-list">
+          @for (task of priorityTasks(); track task.id) {
+            <li>
+              <input class="form-check-input mt-0" type="checkbox" (change)="completeTask(task)" [attr.aria-label]="'Concluir ' + task.title" title="Marcar como concluída" />
+              <div class="min-w-0 flex-grow-1">
+                <a class="d-block truncate text-reset" [routerLink]="['/tasks', task.id, 'edit']">{{ task.title }}</a>
+                <span class="text-subtle small truncate d-block">
+                  {{ projectName(task) ?? 'Sem projeto' }}
+                  @if (task.dueDate) {
+                    · <span [class.text-danger-sm]="isTaskOverdue(task)">{{ task.dueDate | relativeDay }}</span>
+                  }
+                </span>
+              </div>
+              <app-priority-badge [value]="task.priority" />
+            </li>
+          }
+        </ul>
+      }
+    </section>
+
+    <section class="sm-card">
+      <div class="sm-card-header">
+        <h2 class="sm-card-title">Progresso por matéria</h2>
+        <a routerLink="/subjects" class="small">Ver todas</a>
+      </div>
+      @if (subjectProgress().length === 0) {
+        <app-empty-state icon="bi-book" title="Nenhuma matéria" [compact]="true">
+          <a routerLink="/subjects/new" class="btn btn-ghost btn-sm">Cadastrar matéria</a>
+        </app-empty-state>
+      } @else {
+        <ul class="sm-list">
+          @for (s of subjectProgress(); track s.subject.id) {
+            <li class="flex-column align-items-stretch gap-1">
+              <div class="d-flex align-items-center gap-2">
+                <span class="color-dot" [style.background]="s.subject.color"></span>
+                <a class="truncate flex-grow-1 text-reset" [routerLink]="['/subjects', s.subject.id]">{{ s.subject.name }}</a>
+                <span class="text-subtle small">{{ formatHours(s.studiedSeconds / 3600) }} / {{ s.subject.plannedHours }}h</span>
+              </div>
+              <app-progress-bar [value]="s.progress" [color]="s.subject.color" [label]="'Progresso de ' + s.subject.name" />
+            </li>
+          }
+        </ul>
+      }
+    </section>
+  </div>
+}

@@ -3,7 +3,12 @@ import { Routes } from '@angular/router';
 const title = (page: string): string => `${page} · Study Manager`;
 
 export const routes: Routes = [
-  { path: '', pathMatch: 'full', redirectTo: 'projects' },
+  { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
+  {
+    path: 'dashboard',
+    title: title('Dashboard'),
+    loadComponent: () => import('./features/dashboard/dashboard').then((m) => m.Dashboard),
+  },
   {
     path: 'projects',
     children: [
@@ -31,7 +36,11 @@ export const routes: Routes = [
       { path: ':id/edit', title: title('Editar matéria'), loadComponent: () => import('./features/subjects/subject-form').then((m) => m.SubjectForm) },
     ],
   },
-  { path: 'timer', title: title('Cronômetro'), loadComponent: () => import('./features/timer/timer-page').then((m) => m.TimerPage) },
+  {
+    path: 'timer',
+    title: title('Cronômetro'),
+    loadComponent: () => import('./features/timer/timer-page').then((m) => m.TimerPage),
+  },
   {
     path: 'history',
     children: [
@@ -40,6 +49,15 @@ export const routes: Routes = [
       { path: ':id/edit', title: title('Editar sessão'), loadComponent: () => import('./features/history/session-form').then((m) => m.SessionForm) },
     ],
   },
-  { path: 'calendar', title: title('Calendário'), loadComponent: () => import('./features/calendar/calendar-page').then((m) => m.CalendarPage) },
-  { path: '**', redirectTo: '' },
+  {
+    path: 'calendar',
+    title: title('Calendário'),
+    loadComponent: () => import('./features/calendar/calendar-page').then((m) => m.CalendarPage),
+  },
+  {
+    path: 'settings',
+    title: title('Configurações'),
+    loadComponent: () => import('./features/settings/settings-page').then((m) => m.SettingsPage),
+  },
+  { path: '**', redirectTo: 'dashboard' },
 ];

@@ -1,0 +1,99 @@
+<app-page-header title="Configurações" subtitle="Preferências da aplicação e gerenciamento dos seus dados." />
+
+<div class="settings-layout">
+  <form class="sm-card" [formGroup]="form" (ngSubmit)="save()" novalidate>
+    <h2 class="sm-card-title mb-3">Preferências</h2>
+    <div class="row g-3">
+      <div class="col-12">
+        <label class="form-label" for="userName">Seu nome</label>
+        <input id="userName" class="form-control" formControlName="userName" placeholder="Como devemos chamar você?" [class.is-invalid]="isInvalid('userName')" />
+        <app-field-error [control]="form.controls.userName" [show]="isInvalid('userName')" />
+      </div>
+
+      <div class="col-12">
+        <span class="form-label d-block" id="theme-label">Tema</span>
+        <div class="theme-options" role="radiogroup" aria-labelledby="theme-label">
+          <label class="theme-option" [class.selected]="form.controls.theme.value === 'dark'">
+            <input type="radio" class="visually-hidden" formControlName="theme" value="dark" (change)="previewTheme('dark')" />
+            <i class="bi bi-moon-stars"></i>Escuro
+          </label>
+          <label class="theme-option" [class.selected]="form.controls.theme.value === 'light'">
+            <input type="radio" class="visually-hidden" formControlName="theme" value="light" (change)="previewTheme('light')" />
+            <i class="bi bi-sun"></i>Claro
+          </label>
+        </div>
+      </div>
+
+      <div class="col-sm-6">
+        <label class="form-label" for="weeklyGoalHours">Meta semanal (horas)</label>
+        <input id="weeklyGoalHours" type="number" min="0" max="168" class="form-control" formControlName="weeklyGoalHours" [class.is-invalid]="isInvalid('weeklyGoalHours')" />
+        <app-field-error [control]="form.controls.weeklyGoalHours" [show]="isInvalid('weeklyGoalHours')" />
+      </div>
+
+      <div class="col-sm-6">
+        <label class="form-label" for="upcomingDays">Prazo “próximo” (dias)</label>
+        <input id="upcomingDays" type="number" min="1" max="60" class="form-control" formControlName="upcomingDays" [class.is-invalid]="isInvalid('upcomingDays')" />
+        <app-field-error [control]="form.controls.upcomingDays" [show]="isInvalid('upcomingDays')" />
+        <div class="form-text text-subtle">Usado para destacar prazos no dashboard e no calendário.</div>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary" [disabled]="form.pristine">Salvar preferências</button>
+    </div>
+  </form>
+
+  <div class="gap-grid">
+    <section class="sm-card">
+      <h2 class="sm-card-title mb-1">Seus dados</h2>
+      <p class="text-muted small mb-3">Tudo fica salvo no armazenamento local deste navegador.</p>
+      <div class="counts">
+        @for (c of counts(); track c.label) {
+          <div class="count-item">
+            <i class="bi" [class]="c.icon"></i>
+            <span class="count-value">{{ c.value }}</span>
+            <span class="count-label">{{ c.label }}</span>
+          </div>
+        }
+      </div>
+    </section>
+
+    <section class="sm-card">
+      <h2 class="sm-card-title mb-3">Backup</h2>
+      <div class="action-row">
+        <div>
+          <div class="fw-500">Exportar dados</div>
+          <div class="text-muted small">Baixa um arquivo JSON com todos os seus dados.</div>
+        </div>
+        <button type="button" class="btn btn-ghost btn-sm" (click)="exportData()"><i class="bi bi-download me-1"></i>Exportar</button>
+      </div>
+      <div class="action-row">
+        <div>
+          <div class="fw-500">Importar dados</div>
+          <div class="text-muted small">Restaura um backup exportado anteriormente.</div>
+        </div>
+        <label class="btn btn-ghost btn-sm mb-0">
+          <i class="bi bi-upload me-1"></i>Importar
+          <input type="file" accept="application/json,.json" class="visually-hidden" (change)="importData($event)" />
+        </label>
+      </div>
+    </section>
+
+    <section class="sm-card">
+      <h2 class="sm-card-title mb-3">Demonstração e limpeza</h2>
+      <div class="action-row">
+        <div>
+          <div class="fw-500">Carregar dados de demonstração</div>
+          <div class="text-muted small">Preenche a aplicação com matérias, projetos e sessões de exemplo.</div>
+        </div>
+        <button type="button" class="btn btn-ghost btn-sm" (click)="loadDemo()"><i class="bi bi-magic me-1"></i>Carregar</button>
+      </div>
+      <div class="action-row">
+        <div>
+          <div class="fw-500 text-danger-sm">Apagar todos os dados</div>
+          <div class="text-muted small">Remove permanentemente todos os registros.</div>
+        </div>
+        <button type="button" class="btn btn-danger-soft btn-sm" (click)="clearData()"><i class="bi bi-trash me-1"></i>Apagar</button>
+      </div>
+    </section>
+  </div>
+</div>

@@ -27,12 +27,12 @@ export const TASK_STATUS_OPTIONS: OptionMeta<TaskStatus>[] = [
 ];
 
 export const CALENDAR_KIND_META: Record<CalendarItemKind, { label: string; icon: string; color: string }> = {
-  task: { label: 'Prazo de tarefa', icon: 'bi-check2-square', color: '#3b82f6' },
-  project: { label: 'Prazo de projeto', icon: 'bi-folder2', color: '#8b5cf6' },
-  exam: { label: 'Prova', icon: 'bi-mortarboard', color: '#ef4444' },
-  goal: { label: 'Meta de estudo', icon: 'bi-flag', color: '#f59e0b' },
-  planned_session: { label: 'Sessão planejada', icon: 'bi-calendar-plus', color: '#06b6d4' },
-  session: { label: 'Sessão realizada', icon: 'bi-stopwatch', color: '#22c55e' },
+  task: { label: 'Prazo de tarefa', icon: 'bi-check2-square', color: '#3987e5' },
+  project: { label: 'Prazo de projeto', icon: 'bi-folder2', color: '#9085e9' },
+  exam: { label: 'Prova', icon: 'bi-mortarboard', color: '#d55181' },
+  goal: { label: 'Meta de estudo', icon: 'bi-flag', color: '#c98500' },
+  planned_session: { label: 'Sessão planejada', icon: 'bi-calendar-plus', color: '#199e70' },
+  session: { label: 'Sessão realizada', icon: 'bi-stopwatch', color: '#d95926' },
 };
 
 export const PRIORITY_WEIGHT: Record<Priority, number> = { high: 3, medium: 2, low: 1 };
@@ -41,8 +41,18 @@ export function optionMeta<T extends string>(options: OptionMeta<T>[], value: T)
   return options.find((o) => o.value === value) ?? options[0];
 }
 
-/** Paleta sugerida para as cores das matérias. */
+/**
+ * Paleta categórica sugerida para as matérias, em ordem fixa.
+ * Validada (contraste, separação para daltonismo e visão normal)
+ * nos fundos claro (#ffffff) e escuro (#15171c).
+ */
 export const SUBJECT_COLORS = [
-  '#3b82f6', '#8b5cf6', '#ec4899', '#ef4444', '#f97316',
-  '#f59e0b', '#22c55e', '#14b8a6', '#06b6d4', '#64748b',
+  '#3987e5', '#d95926', '#199e70', '#c98500',
+  '#d55181', '#008300', '#9085e9', '#e66767',
 ];
+
+/** Próxima cor da paleta ainda não usada (ou a primeira, se todas estiverem em uso). */
+export function nextSubjectColor(used: string[]): string {
+  const taken = new Set(used.map((c) => c.toLowerCase()));
+  return SUBJECT_COLORS.find((c) => !taken.has(c)) ?? SUBJECT_COLORS[used.length % SUBJECT_COLORS.length];
+}

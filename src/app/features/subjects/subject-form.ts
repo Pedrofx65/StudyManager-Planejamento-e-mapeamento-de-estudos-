@@ -3,7 +3,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { SubjectService } from '../../core/services/subject.service';
 import { ToastService } from '../../core/services/toast.service';
-import { SUBJECT_COLORS } from '../../core/utils/labels';
+import { SUBJECT_COLORS, nextSubjectColor } from '../../core/utils/labels';
 import { notBlank } from '../../core/utils/validators';
 import { FieldError } from '../../shared/components/field-error';
 import { PageHeader } from '../../shared/components/page-header';
@@ -44,7 +44,10 @@ export class SubjectForm extends BaseForm implements OnInit {
 
   ngOnInit(): void {
     const id = this.id();
-    if (!id) return;
+    if (!id) {
+      this.form.controls.color.setValue(nextSubjectColor(this.subjects.items().map((s) => s.color)));
+      return;
+    }
     const subject = this.subjects.getById(id);
     if (!subject) {
       this.notFound.set(true);
