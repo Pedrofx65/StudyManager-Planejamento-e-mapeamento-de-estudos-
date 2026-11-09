@@ -1,0 +1,43 @@
+.project-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+.project-card { display: flex; flex-direction: column; gap: 0.85rem; }
+.project-name { font-size: 0.98rem; margin: 0; }
+.project-desc {
+  color: var(--sm-text-muted);
+  font-size: 0.82rem;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.project-dates {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  font-size: 0.75rem;
+  color: var(--sm-text-muted);
+  margin-top: auto;
+}
+.card-actions { display: flex; gap: 0.1rem; flex-shrink: 0; }
+
+/* --- Detalhe --------------------------------------------------------------- */
+.detail-header { display: flex; align-items: flex-start; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+.detail-title { font-size: 1.45rem; margin: 0 0 0.4rem; }
+.stat-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
+.mini-stat .label { font-size: 0.75rem; color: var(--sm-text-muted); }
+.mini-stat .value { font-size: 1.2rem; font-weight: 600; }
+
+.task-row .task-title { flex: 1; min-width: 0; }
+.task-row .task-title.done { color: var(--sm-text-subtle); text-decoration: line-through; }
+.task-row .task-meta { display: flex; gap: 0.35rem; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+@media (max-width: 575.98px) {
+  .task-row { flex-wrap: wrap; }
+  .task-row .task-meta { width: 100%; justify-content: flex-start; padding-left: 1.75rem; }
+}

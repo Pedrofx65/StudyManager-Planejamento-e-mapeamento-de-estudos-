@@ -1,0 +1,65 @@
+<app-page-header
+  [title]="isEdit() ? 'Editar projeto' : 'Novo projeto'"
+  subtitle="O progresso é calculado automaticamente pelas tarefas concluídas."
+/>
+
+@if (notFound()) {
+  <div class="sm-card text-center py-5">
+    <p class="mb-3">Projeto não encontrado.</p>
+    <a routerLink="/projects" class="btn btn-ghost btn-sm">Voltar para projetos</a>
+  </div>
+} @else {
+  <form class="sm-card form-card" [formGroup]="form" (ngSubmit)="save()" novalidate>
+    <div class="row g-3">
+      <div class="col-12">
+        <label class="form-label" for="name">Nome *</label>
+        <input id="name" class="form-control" formControlName="name" placeholder="Ex.: Preparação para concursos" [class.is-invalid]="isInvalid('name')" />
+        <app-field-error [control]="form.controls.name" [show]="isInvalid('name')" />
+      </div>
+
+      <div class="col-12">
+        <label class="form-label" for="description">Descrição</label>
+        <textarea id="description" class="form-control" rows="3" formControlName="description" placeholder="Qual o objetivo deste projeto?" [class.is-invalid]="isInvalid('description')"></textarea>
+        <app-field-error [control]="form.controls.description" [show]="isInvalid('description')" />
+      </div>
+
+      <div class="col-sm-6">
+        <label class="form-label" for="startDate">Data de início *</label>
+        <input id="startDate" type="date" class="form-control" formControlName="startDate" [class.is-invalid]="isInvalid('startDate')" />
+        <app-field-error [control]="form.controls.startDate" [show]="isInvalid('startDate')" />
+      </div>
+
+      <div class="col-sm-6">
+        <label class="form-label" for="dueDate">Conclusão prevista *</label>
+        <input id="dueDate" type="date" class="form-control" formControlName="dueDate" [class.is-invalid]="isInvalid('dueDate') || dateRangeInvalid()" />
+        <app-field-error [control]="form.controls.dueDate" [show]="isInvalid('dueDate')" />
+        @if (dateRangeInvalid()) {
+          <div class="invalid-feedback d-block">A conclusão não pode ser anterior ao início.</div>
+        }
+      </div>
+
+      <div class="col-sm-6">
+        <label class="form-label" for="status">Status</label>
+        <select id="status" class="form-select" formControlName="status">
+          @for (o of statusOptions; track o.value) {
+            <option [value]="o.value">{{ o.label }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="col-sm-6">
+        <label class="form-label" for="priority">Prioridade</label>
+        <select id="priority" class="form-select" formControlName="priority">
+          @for (o of priorityOptions; track o.value) {
+            <option [value]="o.value">{{ o.label }}</option>
+          }
+        </select>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <a class="btn btn-ghost" [routerLink]="isEdit() ? ['/projects', id()] : ['/projects']">Cancelar</a>
+      <button type="submit" class="btn btn-primary">{{ isEdit() ? 'Salvar alterações' : 'Criar projeto' }}</button>
+    </div>
+  </form>
+}

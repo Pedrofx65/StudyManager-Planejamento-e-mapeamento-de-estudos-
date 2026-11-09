@@ -3,7 +3,16 @@ import { Routes } from '@angular/router';
 const title = (page: string): string => `${page} · Study Manager`;
 
 export const routes: Routes = [
-  { path: '', pathMatch: 'full', redirectTo: 'subjects' },
+  { path: '', pathMatch: 'full', redirectTo: 'projects' },
+  {
+    path: 'projects',
+    children: [
+      { path: '', title: title('Projetos'), loadComponent: () => import('./features/projects/project-list').then((m) => m.ProjectList) },
+      { path: 'new', title: title('Novo projeto'), loadComponent: () => import('./features/projects/project-form').then((m) => m.ProjectForm) },
+      { path: ':id', title: title('Projeto'), loadComponent: () => import('./features/projects/project-detail').then((m) => m.ProjectDetail) },
+      { path: ':id/edit', title: title('Editar projeto'), loadComponent: () => import('./features/projects/project-form').then((m) => m.ProjectForm) },
+    ],
+  },
   {
     path: 'subjects',
     children: [

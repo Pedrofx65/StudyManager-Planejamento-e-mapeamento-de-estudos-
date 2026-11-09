@@ -22,10 +22,10 @@
       [value]="search()"
       (input)="search.set($any($event.target).value)"
     />
-    <select class="form-select" aria-label="Filtrar por categoria" [value]="category()" (change)="category.set($any($event.target).value)">
+    <select class="form-select" aria-label="Filtrar por categoria" (change)="category.set($any($event.target).value)">
       <option value="">Todas as categorias</option>
       @for (c of categories(); track c) {
-        <option [value]="c">{{ c }}</option>
+        <option [value]="c" [selected]="c === category()">{{ c }}</option>
       }
     </select>
     @if (search() || category()) {

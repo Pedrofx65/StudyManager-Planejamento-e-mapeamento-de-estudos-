@@ -1,0 +1,88 @@
+@if (project(); as p) {
+  <a routerLink="/projects" class="back-link"><i class="bi bi-arrow-left me-1"></i>Projetos</a>
+
+  <div class="detail-header">
+    <div class="min-w-0 flex-grow-1">
+      <h1 class="detail-title">{{ p.name }}</h1>
+      <div class="d-flex flex-wrap gap-1 align-items-center">
+        <app-status-badge [value]="p.status" kind="project" />
+        <app-priority-badge [value]="p.priority" />
+        <span class="sm-chip"><i class="bi bi-calendar-event"></i>{{ p.startDate | date: 'dd/MM/yyyy' }} → {{ p.dueDate | date: 'dd/MM/yyyy' }}</span>
+      </div>
+      @if (p.description) {
+        <p class="text-muted mt-2 mb-0">{{ p.description }}</p>
+      }
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+      <select class="form-select form-select-sm w-auto" aria-label="Alterar status" (change)="changeStatus($any($event.target).value)">
+        @for (o of statusOptions; track o.value) {
+          <option [value]="o.value" [selected]="o.value === p.status">{{ o.label }}</option>
+        }
+      </select>
+      <a class="btn btn-ghost btn-sm" [routerLink]="['/projects', p.id, 'edit']"><i class="bi bi-pencil me-1"></i>Editar</a>
+      <button type="button" class="btn btn-danger-soft btn-sm" aria-label="Excluir projeto" (click)="remove()"><i class="bi bi-trash"></i></button>
+    </div>
+  </div>
+
+  <div class="stat-row">
+    <div class="sm-card mini-stat">
+      <div class="label">Progresso</div>
+      <div class="value mb-1">{{ progress().progress }}%</div>
+      <app-progress-bar [value]="progress().progress" [showValue]="false" />
+    </div>
+    <div class="sm-card mini-stat">
+      <div class="label">Tarefas concluídas</div>
+      <div class="value">{{ progress().done }} / {{ progress().total }}</div>
+    </div>
+    <div class="sm-card mini-stat">
+      <div class="label">Tempo estudado</div>
+      <div class="value">{{ studiedSeconds() | duration }}</div>
+    </div>
+    <div class="sm-card mini-stat">
+      <div class="label">Prazo</div>
+      @if (p.status === 'completed') {
+        <div class="value text-success-sm">Concluído</div>
+      } @else if (daysLeft() < 0) {
+        <div class="value text-danger-sm">{{ -daysLeft() }} dias atrasado</div>
+      } @else {
+        <div class="value" [class.text-warning-sm]="daysLeft() <= 7">{{ daysLeft() === 0 ? 'Hoje' : daysLeft() + ' dias' }}</div>
+      }
+    </div>
+  </div>
+
+  <section class="sm-card">
+    <div class="sm-card-header">
+      <h2 class="sm-card-title">Tarefas do projeto</h2>
+      <a class="btn btn-primary btn-sm" routerLink="/tasks/new" [queryParams]="{ project: p.id }"><i class="bi bi-plus-lg me-1"></i>Nova tarefa</a>
+    </div>
+
+    @if (projectTasks().length === 0) {
+      <app-empty-state icon="bi-check2-square" title="Nenhuma tarefa neste projeto" message="Adicione tarefas para acompanhar o progresso automaticamente." [compact]="true" />
+    } @else {
+      <ul class="sm-list">
+        @for (task of projectTasks(); track task.id) {
+          <li class="task-row">
+            <input class="form-check-input mt-0" type="checkbox" [checked]="task.status === 'done'" (change)="toggleTask(task)" [attr.aria-label]="'Concluir ' + task.title" />
+            <a class="task-title truncate text-reset" [class.done]="task.status === 'done'" [routerLink]="['/tasks', task.id, 'edit']">{{ task.title }}</a>
+            <div class="task-meta">
+              @if (subjectOf(task); as subject) {
+                <span class="sm-chip"><span class="color-dot" [style.background]="subject.color"></span>{{ subject.name }}</span>
+              }
+              @if (task.dueDate) {
+                <span class="sm-chip" [class.danger]="isTaskOverdue(task)"><i class="bi bi-calendar"></i>{{ task.dueDate | date: 'dd/MM' }}</span>
+              }
+              <app-priority-badge [value]="task.priority" />
+              <app-status-badge [value]="task.status" />
+            </div>
+          </li>
+        }
+      </ul>
+    }
+  </section>
+} @else {
+  <div class="sm-card">
+    <app-empty-state icon="bi-question-circle" title="Projeto não encontrado" message="Ele pode ter sido excluído.">
+      <a routerLink="/projects" class="btn btn-ghost btn-sm">Voltar para projetos</a>
+    </app-empty-state>
+  </div>
+}
