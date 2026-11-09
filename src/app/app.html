@@ -1,0 +1,15 @@
+<app-sidebar [open]="sidebarOpen()" (closed)="sidebarOpen.set(false)" />
+
+@if (sidebarOpen()) {
+  <div class="sidebar-backdrop d-lg-none" (click)="sidebarOpen.set(false)"></div>
+}
+
+<div class="shell">
+  <app-topbar (menuToggle)="sidebarOpen.set(!sidebarOpen())" />
+  <main class="content">
+    <router-outlet />
+  </main>
+</div>
+
+<app-confirm-dialog />
+<app-toast-container />
