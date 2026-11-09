@@ -1,0 +1,65 @@
+<app-page-header
+  title="Minhas tarefas"
+  [subtitle]="summary().pending + ' pendentes · ' + summary().done + ' concluídas' + (summary().overdue ? ' · ' + summary().overdue + ' atrasadas' : '')"
+>
+  <div class="view-toggle" role="group" aria-label="Modo de visualização">
+    <button type="button" class="btn btn-sm" [class.active]="view() === 'board'" [attr.aria-pressed]="view() === 'board'" (click)="setView('board')">
+      <i class="bi bi-kanban me-1"></i>Kanban
+    </button>
+    <button type="button" class="btn btn-sm" [class.active]="view() === 'list'" [attr.aria-pressed]="view() === 'list'" (click)="setView('list')">
+      <i class="bi bi-list-ul me-1"></i>Lista
+    </button>
+  </div>
+  <a routerLink="/tasks/new" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i>Nova tarefa</a>
+</app-page-header>
+
+@if (!hasTasks()) {
+  <div class="sm-card">
+    <app-empty-state icon="bi-check2-square" title="Nenhuma tarefa cadastrada" message="Crie tarefas, defina prazos e acompanhe tudo no quadro Kanban.">
+      <a routerLink="/tasks/new" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i>Criar tarefa</a>
+    </app-empty-state>
+  </div>
+} @else {
+  <div class="filters-bar">
+    <input type="search" class="form-control" placeholder="Buscar tarefa..." aria-label="Buscar tarefa" [value]="search()" (input)="search.set($any($event.target).value)" />
+    <select class="form-select" aria-label="Filtrar por projeto" (change)="projectId.set($any($event.target).value)">
+      <option value="" [selected]="!projectId()">Todos os projetos</option>
+      <option value="none" [selected]="projectId() === 'none'">Sem projeto</option>
+      @for (p of projects.sorted(); track p.id) {
+        <option [value]="p.id" [selected]="p.id === projectId()">{{ p.name }}</option>
+      }
+    </select>
+    <select class="form-select" aria-label="Filtrar por matéria" (change)="subjectId.set($any($event.target).value)">
+      <option value="" [selected]="!subjectId()">Todas as matérias</option>
+      <option value="none" [selected]="subjectId() === 'none'">Sem matéria</option>
+      @for (s of subjects.sorted(); track s.id) {
+        <option [value]="s.id" [selected]="s.id === subjectId()">{{ s.name }}</option>
+      }
+    </select>
+    <select class="form-select" aria-label="Filtrar por prioridade" (change)="priority.set($any($event.target).value)">
+      <option value="" [selected]="!priority()">Todas as prioridades</option>
+      @for (o of priorityOptions; track o.value) {
+        <option [value]="o.value" [selected]="o.value === priority()">{{ o.label }}</option>
+      }
+    </select>
+    <select class="form-select" aria-label="Filtrar por prazo" [value]="due()" (change)="due.set($any($event.target).value)">
+      <option value="">Qualquer prazo</option>
+      <option value="overdue">Atrasadas</option>
+      <option value="upcoming">Prazo próximo</option>
+      <option value="none">Sem prazo</option>
+    </select>
+    @if (hasFilters()) {
+      <button type="button" class="btn btn-ghost btn-sm" (click)="clearFilters()">Limpar filtros</button>
+    }
+  </div>
+
+  @if (view() === 'board') {
+    <app-task-board [tasks]="filtered()" />
+  } @else if (filtered().length === 0) {
+    <div class="sm-card">
+      <app-empty-state icon="bi-search" title="Nenhuma tarefa encontrada" message="Ajuste a busca ou os filtros." [compact]="true" />
+    </div>
+  } @else {
+    <app-task-table [tasks]="filtered()" />
+  }
+}

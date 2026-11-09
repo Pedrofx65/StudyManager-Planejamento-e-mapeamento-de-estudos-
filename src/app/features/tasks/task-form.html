@@ -1,0 +1,99 @@
+<app-page-header [title]="isEdit() ? 'Editar tarefa' : 'Nova tarefa'" [subtitle]="task() ? 'Criada em ' + (task()!.createdAt | date: 'dd/MM/yyyy, HH:mm') : 'Preencha os dados da tarefa.'">
+  @if (task(); as t) {
+    @if (t.status !== 'done') {
+      <button type="button" class="btn btn-ghost" (click)="study()"><i class="bi bi-play-fill me-1"></i>Estudar agora</button>
+    }
+    <button type="button" class="btn btn-danger-soft" (click)="remove()"><i class="bi bi-trash me-1"></i>Excluir</button>
+  }
+</app-page-header>
+
+@if (notFound()) {
+  <div class="sm-card text-center py-5">
+    <p class="mb-3">Tarefa não encontrada.</p>
+    <a routerLink="/tasks" class="btn btn-ghost btn-sm">Voltar para tarefas</a>
+  </div>
+} @else {
+  <form class="sm-card form-card" [formGroup]="form" (ngSubmit)="save()" novalidate>
+    <div class="row g-3">
+      <div class="col-12">
+        <label class="form-label" for="title">Título *</label>
+        <input id="title" class="form-control" formControlName="title" placeholder="Ex.: Resolver 30 questões de Português" [class.is-invalid]="isInvalid('title')" />
+        <app-field-error [control]="form.controls.title" [show]="isInvalid('title')" />
+      </div>
+
+      <div class="col-12">
+        <label class="form-label" for="description">Descrição</label>
+        <textarea id="description" class="form-control" rows="3" formControlName="description" placeholder="Detalhes, links ou referências" [class.is-invalid]="isInvalid('description')"></textarea>
+        <app-field-error [control]="form.controls.description" [show]="isInvalid('description')" />
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label" for="projectId">Projeto</label>
+        <select id="projectId" class="form-select" formControlName="projectId">
+          <option value="">Sem projeto</option>
+          @for (p of projects.sorted(); track p.id) {
+            <option [value]="p.id">{{ p.name }}</option>
+          }
+        </select>
+        @if (projects.items().length === 0) {
+          <div class="form-text text-subtle">Nenhum projeto ainda. <a routerLink="/projects/new">Criar projeto</a></div>
+        }
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label" for="subjectId">Matéria</label>
+        <select id="subjectId" class="form-select" formControlName="subjectId">
+          <option value="">Sem matéria</option>
+          @for (s of subjects.sorted(); track s.id) {
+            <option [value]="s.id">{{ s.name }}</option>
+          }
+        </select>
+        @if (subjects.items().length === 0) {
+          <div class="form-text text-subtle">Nenhuma matéria ainda. <a routerLink="/subjects/new">Criar matéria</a></div>
+        }
+      </div>
+
+      <div class="col-sm-6 col-md-4">
+        <label class="form-label" for="dueDate">Prazo</label>
+        <input id="dueDate" type="date" class="form-control" formControlName="dueDate" />
+      </div>
+
+      <div class="col-sm-6 col-md-4">
+        <label class="form-label" for="priority">Prioridade</label>
+        <select id="priority" class="form-select" formControlName="priority">
+          @for (o of priorityOptions; track o.value) {
+            <option [value]="o.value">{{ o.label }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="col-sm-6 col-md-4">
+        <label class="form-label" for="status">Status</label>
+        <select id="status" class="form-select" formControlName="status">
+          @for (o of statusOptions; track o.value) {
+            <option [value]="o.value">{{ o.label }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="col-sm-6">
+        <label class="form-label" for="estimatedMinutes">Tempo estimado (minutos) *</label>
+        <input id="estimatedMinutes" type="number" min="0" step="5" class="form-control" formControlName="estimatedMinutes" [class.is-invalid]="isInvalid('estimatedMinutes')" />
+        <app-field-error [control]="form.controls.estimatedMinutes" [show]="isInvalid('estimatedMinutes')" />
+        <div class="form-text text-subtle">≈ {{ form.controls.estimatedMinutes.value | duration: 'minutes' }}</div>
+      </div>
+
+      <div class="col-sm-6">
+        <label class="form-label" for="spentMinutes">Tempo utilizado (minutos)</label>
+        <input id="spentMinutes" type="number" min="0" step="5" class="form-control" formControlName="spentMinutes" [class.is-invalid]="isInvalid('spentMinutes')" />
+        <app-field-error [control]="form.controls.spentMinutes" [show]="isInvalid('spentMinutes')" />
+        <div class="form-text text-subtle">Atualizado automaticamente pelas sessões do cronômetro.</div>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="button" class="btn btn-ghost" (click)="goBack()">Cancelar</button>
+      <button type="submit" class="btn btn-primary">{{ isEdit() ? 'Salvar alterações' : 'Criar tarefa' }}</button>
+    </div>
+  </form>
+}

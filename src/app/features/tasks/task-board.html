@@ -1,0 +1,72 @@
+<div class="board" cdkDropListGroup>
+  @for (column of columns(); track column.status) {
+    <section class="board-column" [class]="'col-' + column.status">
+      <header class="column-header">
+        <i class="bi" [class]="column.icon"></i>
+        <span class="fw-500">{{ column.title }}</span>
+        <span class="column-count">{{ column.tasks.length }}</span>
+        @if (column.status !== 'done') {
+          <a class="btn btn-icon btn-sm ms-auto" routerLink="/tasks/new" [queryParams]="{ status: column.status }" [attr.aria-label]="'Nova tarefa em ' + column.title" title="Nova tarefa">
+            <i class="bi bi-plus-lg"></i>
+          </a>
+        }
+      </header>
+
+      <div
+        class="column-body"
+        cdkDropList
+        [cdkDropListData]="column.tasks"
+        (cdkDropListDropped)="drop($event, column.status)"
+        [attr.aria-label]="'Coluna ' + column.title"
+      >
+        @for (task of column.tasks; track task.id) {
+          <article
+            class="task-card"
+            cdkDrag
+            [cdkDragData]="task"
+            tabindex="0"
+            (click)="open(task)"
+            (keydown.enter)="open(task)"
+          >
+            <div class="task-card-placeholder" *cdkDragPlaceholder></div>
+
+            <div class="d-flex align-items-start gap-2">
+              <span class="task-card-title" [class.done]="task.status === 'done'">{{ task.title }}</span>
+              <div class="task-card-actions" (click)="stop($event)" (keydown.enter)="stop($event)">
+                @if (task.status !== 'done') {
+                  <button type="button" class="btn btn-icon btn-sm" title="Estudar esta tarefa" aria-label="Estudar esta tarefa" (click)="actions.study(task)">
+                    <i class="bi bi-play-fill"></i>
+                  </button>
+                }
+                <button type="button" class="btn btn-icon btn-sm danger" title="Excluir" aria-label="Excluir tarefa" (click)="actions.delete(task)">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </div>
+            </div>
+
+            @if (actions.projectOf(task); as project) {
+              <div class="task-card-project truncate"><i class="bi bi-folder2 me-1"></i>{{ project.name }}</div>
+            }
+
+            <div class="task-card-meta">
+              <app-priority-badge [value]="task.priority" />
+              @if (actions.subjectOf(task); as subject) {
+                <span class="sm-chip"><span class="color-dot" [style.background]="subject.color"></span>{{ subject.name }}</span>
+              }
+              @if (task.dueDate) {
+                <span class="sm-chip" [class.danger]="isOverdue(task)"><i class="bi bi-calendar"></i>{{ task.dueDate | date: 'dd/MM' }}</span>
+              }
+              @if (task.estimatedMinutes || task.spentMinutes) {
+                <span class="sm-chip" title="Tempo utilizado / estimado">
+                  <i class="bi bi-clock"></i>{{ task.spentMinutes | duration: 'minutes' }} / {{ task.estimatedMinutes | duration: 'minutes' }}
+                </span>
+              }
+            </div>
+          </article>
+        } @empty {
+          <div class="column-empty">Arraste tarefas para cá</div>
+        }
+      </div>
+    </section>
+  }
+</div>

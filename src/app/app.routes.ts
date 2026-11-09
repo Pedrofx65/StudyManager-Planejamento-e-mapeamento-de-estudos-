@@ -14,6 +14,15 @@ export const routes: Routes = [
     ],
   },
   {
+    path: 'tasks',
+    children: [
+      { path: '', title: title('Tarefas'), loadComponent: () => import('./features/tasks/tasks-page').then((m) => m.TasksPage) },
+      { path: 'new', title: title('Nova tarefa'), loadComponent: () => import('./features/tasks/task-form').then((m) => m.TaskForm) },
+      { path: ':id/edit', title: title('Editar tarefa'), loadComponent: () => import('./features/tasks/task-form').then((m) => m.TaskForm) },
+      { path: ':id', redirectTo: ':id/edit' },
+    ],
+  },
+  {
     path: 'subjects',
     children: [
       { path: '', title: title('Matérias'), loadComponent: () => import('./features/subjects/subject-list').then((m) => m.SubjectList) },
