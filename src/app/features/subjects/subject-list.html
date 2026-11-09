@@ -1,0 +1,82 @@
+<app-page-header title="Matérias" subtitle="Organize o que você precisa estudar e acompanhe as horas dedicadas.">
+  <a routerLink="/subjects/new" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i>Nova matéria</a>
+</app-page-header>
+
+@if (!hasSubjects()) {
+  <div class="sm-card">
+    <app-empty-state
+      icon="bi-book"
+      title="Nenhuma matéria cadastrada"
+      message="Cadastre as matérias que você estuda para registrar horas, conteúdos e progresso."
+    >
+      <a routerLink="/subjects/new" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i>Cadastrar matéria</a>
+    </app-empty-state>
+  </div>
+} @else {
+  <div class="filters-bar">
+    <input
+      type="search"
+      class="form-control"
+      placeholder="Buscar matéria..."
+      aria-label="Buscar matéria"
+      [value]="search()"
+      (input)="search.set($any($event.target).value)"
+    />
+    <select class="form-select" aria-label="Filtrar por categoria" [value]="category()" (change)="category.set($any($event.target).value)">
+      <option value="">Todas as categorias</option>
+      @for (c of categories(); track c) {
+        <option [value]="c">{{ c }}</option>
+      }
+    </select>
+    @if (search() || category()) {
+      <button type="button" class="btn btn-ghost btn-sm" (click)="clearFilters()">Limpar filtros</button>
+    }
+  </div>
+
+  @if (filtered().length === 0) {
+    <div class="sm-card">
+      <app-empty-state icon="bi-search" title="Nenhuma matéria encontrada" message="Ajuste a busca ou os filtros." [compact]="true" />
+    </div>
+  } @else {
+    <div class="subject-grid">
+      @for (item of filtered(); track item.subject.id) {
+        <article
+          class="sm-card clickable subject-card"
+          tabindex="0"
+          [style.--subject-color]="item.subject.color"
+          (click)="open(item.subject)"
+          (keydown.enter)="open(item.subject)"
+        >
+          <div class="d-flex align-items-start gap-2 mb-2">
+            <span class="subject-icon"><i class="bi bi-book"></i></span>
+            <div class="min-w-0 flex-grow-1">
+              <h2 class="subject-name truncate">{{ item.subject.name }}</h2>
+              @if (item.subject.category) {
+                <span class="text-subtle small">{{ item.subject.category }}</span>
+              }
+            </div>
+            <div class="card-actions" (click)="stop($event)" (keydown.enter)="stop($event)">
+              <a class="btn btn-icon btn-sm" [routerLink]="['/subjects', item.subject.id, 'edit']" title="Editar" aria-label="Editar matéria">
+                <i class="bi bi-pencil"></i>
+              </a>
+              <button type="button" class="btn btn-icon btn-sm danger" title="Excluir" aria-label="Excluir matéria" (click)="remove(item.subject, $event)">
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
+          </div>
+
+          @if (item.subject.description) {
+            <p class="subject-desc">{{ item.subject.description }}</p>
+          }
+
+          <app-progress-bar [value]="item.progress" [color]="item.subject.color" label="Conclusão da matéria" />
+
+          <div class="subject-meta">
+            <span><i class="bi bi-clock me-1"></i>{{ item.studiedSeconds | duration }} de {{ item.subject.plannedHours }}h</span>
+            <span><i class="bi bi-list-check me-1"></i>{{ item.topicsDone }}/{{ item.subject.topics.length }} conteúdos</span>
+          </div>
+        </article>
+      }
+    </div>
+  }
+}

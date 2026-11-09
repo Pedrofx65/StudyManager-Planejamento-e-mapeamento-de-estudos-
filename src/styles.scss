@@ -195,3 +195,8 @@ a { text-decoration: none; }
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-thumb { background: var(--sm-border-strong); border-radius: 10px; border: 2px solid var(--sm-bg); }
 ::-webkit-scrollbar-track { background: transparent; }
+
+/* --- Páginas ---------------------------------------------------------------- */
+.form-card { max-width: 860px; }
+.back-link { display: inline-flex; align-items: center; font-size: 0.82rem; color: var(--sm-text-muted); margin-bottom: 0.9rem; }
+.back-link:hover { color: var(--sm-text); }

@@ -1,0 +1,76 @@
+<app-page-header
+  [title]="isEdit() ? 'Editar matéria' : 'Nova matéria'"
+  subtitle="Defina nome, categoria, cor e a meta de horas da matéria."
+/>
+
+@if (notFound()) {
+  <div class="sm-card text-center py-5">
+    <p class="mb-3">Matéria não encontrada.</p>
+    <a routerLink="/subjects" class="btn btn-ghost btn-sm">Voltar para matérias</a>
+  </div>
+} @else {
+  <form class="sm-card form-card" [formGroup]="form" (ngSubmit)="save()" novalidate>
+    <div class="row g-3">
+      <div class="col-md-8">
+        <label class="form-label" for="name">Nome *</label>
+        <input id="name" class="form-control" formControlName="name" placeholder="Ex.: Direito Constitucional" [class.is-invalid]="isInvalid('name')" />
+        <app-field-error [control]="form.controls.name" [show]="isInvalid('name')" />
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label" for="category">Categoria</label>
+        <input id="category" class="form-control" formControlName="category" list="category-list" placeholder="Ex.: Concursos" [class.is-invalid]="isInvalid('category')" />
+        <datalist id="category-list">
+          @for (c of categorySuggestions(); track c) {
+            <option [value]="c"></option>
+          }
+        </datalist>
+        <app-field-error [control]="form.controls.category" [show]="isInvalid('category')" />
+      </div>
+
+      <div class="col-12">
+        <label class="form-label" for="description">Descrição</label>
+        <textarea id="description" class="form-control" rows="2" formControlName="description" placeholder="Objetivo ou observações sobre a matéria" [class.is-invalid]="isInvalid('description')"></textarea>
+        <app-field-error [control]="form.controls.description" [show]="isInvalid('description')" />
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label" for="plannedHours">Horas planejadas *</label>
+        <input id="plannedHours" type="number" min="0" step="1" class="form-control" formControlName="plannedHours" [class.is-invalid]="isInvalid('plannedHours')" />
+        <app-field-error [control]="form.controls.plannedHours" [show]="isInvalid('plannedHours')" />
+      </div>
+
+      <div class="col-md-8">
+        <span class="form-label d-block" id="color-label">Cor de identificação</span>
+        <div class="color-options" role="radiogroup" aria-labelledby="color-label">
+          @for (c of colors; track c) {
+            <button
+              type="button"
+              class="color-swatch"
+              role="radio"
+              [attr.aria-checked]="form.controls.color.value === c"
+              [attr.aria-label]="'Cor ' + c"
+              [class.selected]="form.controls.color.value === c"
+              [style.background]="c"
+              (click)="selectColor(c)"
+            ></button>
+          }
+          <input type="color" class="form-control form-control-color" formControlName="color" title="Escolher outra cor" aria-label="Escolher outra cor" />
+        </div>
+      </div>
+
+      @if (!isEdit()) {
+        <div class="col-12">
+          <label class="form-label" for="topics">Conteúdos iniciais <span class="text-subtle">(um por linha, opcional)</span></label>
+          <textarea id="topics" class="form-control" rows="4" formControlName="topics" placeholder="Princípios fundamentais&#10;Direitos e garantias fundamentais&#10;Organização do Estado"></textarea>
+          <div class="form-text text-subtle">Você também pode adicionar e marcar conteúdos depois, na página da matéria.</div>
+        </div>
+      }
+    </div>
+
+    <div class="form-actions">
+      <a class="btn btn-ghost" [routerLink]="isEdit() ? ['/subjects', id()] : ['/subjects']">Cancelar</a>
+      <button type="submit" class="btn btn-primary">{{ isEdit() ? 'Salvar alterações' : 'Criar matéria' }}</button>
+    </div>
+  </form>
+}

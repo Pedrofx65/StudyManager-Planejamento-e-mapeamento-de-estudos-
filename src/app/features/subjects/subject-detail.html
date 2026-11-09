@@ -1,0 +1,141 @@
+@if (stats(); as s) {
+  <a routerLink="/subjects" class="back-link"><i class="bi bi-arrow-left me-1"></i>Matérias</a>
+
+  <div class="detail-header" [style.--subject-color]="s.subject.color">
+    <span class="subject-icon"><i class="bi bi-book"></i></span>
+    <div class="min-w-0 flex-grow-1">
+      <h1 class="detail-title">{{ s.subject.name }}</h1>
+      <div class="text-muted small">
+        {{ s.subject.category || 'Sem categoria' }}
+        @if (s.subject.description) { · {{ s.subject.description }} }
+      </div>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+      <button type="button" class="btn btn-primary" (click)="studyNow()"><i class="bi bi-play-fill me-1"></i>Estudar agora</button>
+      <a class="btn btn-ghost" [routerLink]="['/subjects', s.subject.id, 'edit']"><i class="bi bi-pencil me-1"></i>Editar</a>
+      <button type="button" class="btn btn-danger-soft" (click)="remove()" aria-label="Excluir matéria"><i class="bi bi-trash"></i></button>
+    </div>
+  </div>
+
+  <div class="stat-row">
+    <div class="sm-card mini-stat">
+      <div class="label">Horas estudadas</div>
+      <div class="value">{{ s.studiedSeconds | duration }}</div>
+    </div>
+    <div class="sm-card mini-stat">
+      <div class="label">Horas planejadas</div>
+      <div class="value">{{ s.subject.plannedHours }}h</div>
+    </div>
+    <div class="sm-card mini-stat">
+      <div class="label">Conteúdos concluídos</div>
+      <div class="value">{{ s.topicsDone }} / {{ s.subject.topics.length }}</div>
+    </div>
+    <div class="sm-card mini-stat">
+      <div class="label">Conclusão</div>
+      <div class="value mb-1">{{ s.progress }}%</div>
+      <app-progress-bar [value]="s.progress" [color]="s.subject.color" [showValue]="false" />
+    </div>
+  </div>
+
+  <div class="detail-grid">
+    <section class="sm-card">
+      <div class="sm-card-header">
+        <h2 class="sm-card-title">Conteúdos</h2>
+        <span class="text-subtle small">Clique para marcar como estudado</span>
+      </div>
+
+      <form class="d-flex gap-2 mb-2" (submit)="$event.preventDefault(); addTopic()">
+        <input
+          class="form-control"
+          placeholder="Adicionar conteúdo..."
+          aria-label="Novo conteúdo"
+          maxlength="120"
+          [value]="newTopic()"
+          (input)="newTopic.set($any($event.target).value)"
+        />
+        <button type="submit" class="btn btn-primary" [disabled]="!newTopic().trim()" aria-label="Adicionar conteúdo">
+          <i class="bi bi-plus-lg"></i>
+        </button>
+      </form>
+
+      @if (s.subject.topics.length === 0) {
+        <app-empty-state icon="bi-list-check" title="Nenhum conteúdo" message="Divida a matéria em conteúdos para acompanhar o progresso." [compact]="true" />
+      } @else {
+        <ul class="sm-list">
+          @for (topic of s.subject.topics; track topic.id) {
+            <li class="topic-item">
+              <input class="form-check-input mt-0" type="checkbox" [checked]="topic.done" (change)="toggleTopic(topic)" [attr.aria-label]="'Concluir ' + topic.title" />
+              @if (editingTopicId() === topic.id) {
+                <input
+                  #editInput
+                  class="form-control form-control-sm"
+                  [value]="topic.title"
+                  aria-label="Editar conteúdo"
+                  (keydown.enter)="saveTopic(topic, editInput.value)"
+                  (keydown.escape)="editingTopicId.set(null)"
+                  (blur)="saveTopic(topic, editInput.value)"
+                  appAutofocus
+                />
+              } @else {
+                <span class="topic-title" [class.done]="topic.done" (click)="toggleTopic(topic)">{{ topic.title }}</span>
+                <span class="topic-actions">
+                  <button type="button" class="btn btn-icon btn-sm" aria-label="Renomear conteúdo" title="Renomear" (click)="startEdit(topic)"><i class="bi bi-pencil"></i></button>
+                  <button type="button" class="btn btn-icon btn-sm danger" aria-label="Remover conteúdo" title="Remover" (click)="removeTopic(topic)"><i class="bi bi-trash"></i></button>
+                </span>
+              }
+            </li>
+          }
+        </ul>
+      }
+    </section>
+
+    <div class="gap-grid">
+      <section class="sm-card">
+        <div class="sm-card-header">
+          <h2 class="sm-card-title">Sessões recentes</h2>
+          <a routerLink="/history" [queryParams]="{ subject: s.subject.id }" class="small">Ver histórico</a>
+        </div>
+        @if (recentSessions().length === 0) {
+          <app-empty-state icon="bi-stopwatch" title="Nenhuma sessão ainda" message="Use o cronômetro para registrar seu tempo de estudo." [compact]="true" />
+        } @else {
+          <ul class="sm-list">
+            @for (session of recentSessions(); track session.id) {
+              <li>
+                <div class="min-w-0 flex-grow-1">
+                  <div class="truncate">{{ session.content || 'Sessão de estudo' }}</div>
+                  <div class="text-subtle small">{{ session.start | date: 'dd/MM/yyyy · HH:mm' }}</div>
+                </div>
+                <span class="sm-chip">{{ session.durationSeconds | duration }}</span>
+              </li>
+            }
+          </ul>
+        }
+      </section>
+
+      <section class="sm-card">
+        <div class="sm-card-header">
+          <h2 class="sm-card-title">Tarefas da matéria</h2>
+          <a routerLink="/tasks/new" [queryParams]="{ subject: s.subject.id }" class="small">Nova tarefa</a>
+        </div>
+        @if (relatedTasks().length === 0) {
+          <app-empty-state icon="bi-check2-square" title="Nenhuma tarefa vinculada" [compact]="true" />
+        } @else {
+          <ul class="sm-list">
+            @for (task of relatedTasks(); track task.id) {
+              <li>
+                <a class="truncate flex-grow-1 text-reset" [routerLink]="['/tasks', task.id, 'edit']">{{ task.title }}</a>
+                <app-status-badge [value]="task.status" />
+              </li>
+            }
+          </ul>
+        }
+      </section>
+    </div>
+  </div>
+} @else {
+  <div class="sm-card">
+    <app-empty-state icon="bi-question-circle" title="Matéria não encontrada" message="Ela pode ter sido excluída.">
+      <a routerLink="/subjects" class="btn btn-ghost btn-sm">Voltar para matérias</a>
+    </app-empty-state>
+  </div>
+}
