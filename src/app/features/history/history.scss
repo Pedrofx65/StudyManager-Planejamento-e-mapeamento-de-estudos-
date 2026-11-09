@@ -1,0 +1,19 @@
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.content-cell { min-width: 220px; max-width: 360px; }
+.session-details {
+  margin-top: 0.4rem;
+  padding: 0.5rem 0.65rem;
+  border-radius: 7px;
+  background: var(--sm-surface-2);
+  font-size: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.notes { white-space: pre-wrap; word-break: break-word; }

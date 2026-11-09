@@ -1,0 +1,121 @@
+<app-page-header title="Histórico de estudos" subtitle="Tudo o que você já estudou, com filtros por matéria, projeto e período.">
+  <a routerLink="/history/new" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i>Registrar estudo</a>
+</app-page-header>
+
+@if (!hasSessions()) {
+  <div class="sm-card">
+    <app-empty-state
+      icon="bi-clock-history"
+      title="Nenhum estudo registrado"
+      message="Use o cronômetro ou registre manualmente um período de estudo."
+    >
+      <div class="d-flex gap-2 justify-content-center flex-wrap">
+        <a routerLink="/timer" class="btn btn-primary btn-sm"><i class="bi bi-stopwatch me-1"></i>Abrir cronômetro</a>
+        <a routerLink="/history/new" class="btn btn-ghost btn-sm">Registrar manualmente</a>
+      </div>
+    </app-empty-state>
+  </div>
+} @else {
+  <div class="filters-bar">
+    <select class="form-select" aria-label="Filtrar por matéria" (change)="subjectId.set($any($event.target).value)">
+      <option value="" [selected]="!subjectId()">Todas as matérias</option>
+      <option value="none" [selected]="subjectId() === 'none'">Sem matéria</option>
+      @for (s of subjects.sorted(); track s.id) {
+        <option [value]="s.id" [selected]="s.id === subjectId()">{{ s.name }}</option>
+      }
+    </select>
+    <select class="form-select" aria-label="Filtrar por projeto" (change)="projectId.set($any($event.target).value)">
+      <option value="" [selected]="!projectId()">Todos os projetos</option>
+      <option value="none" [selected]="projectId() === 'none'">Sem projeto</option>
+      @for (p of projects.sorted(); track p.id) {
+        <option [value]="p.id" [selected]="p.id === projectId()">{{ p.name }}</option>
+      }
+    </select>
+    <select class="form-select" aria-label="Filtrar por período" [value]="period()" (change)="setPeriod($any($event.target).value)">
+      <option value="all">Todo o período</option>
+      <option value="7">Últimos 7 dias</option>
+      <option value="30">Últimos 30 dias</option>
+      <option value="month">Este mês</option>
+      <option value="custom">Personalizado</option>
+    </select>
+    @if (period() === 'custom') {
+      <input type="date" class="form-control" aria-label="Data inicial" [value]="from()" (change)="from.set($any($event.target).value)" />
+      <span class="text-muted small">até</span>
+      <input type="date" class="form-control" aria-label="Data final" [value]="to()" (change)="to.set($any($event.target).value)" />
+    }
+    @if (hasFilters()) {
+      <button type="button" class="btn btn-ghost btn-sm" (click)="clearFilters()">Limpar filtros</button>
+    }
+  </div>
+
+  <div class="summary-grid">
+    <app-stat-card label="Tempo total" [value]="totals().seconds | duration" icon="bi-clock" tone="primary" />
+    <app-stat-card label="Sessões" [value]="totals().count" icon="bi-collection" tone="success" />
+    <app-stat-card label="Média por sessão" [value]="totals().average | duration" icon="bi-speedometer2" tone="warning" />
+    <app-stat-card label="Dias estudados" [value]="totals().days" icon="bi-calendar-check" tone="primary" />
+  </div>
+
+  @if (filtered().length === 0) {
+    <div class="sm-card">
+      <app-empty-state icon="bi-search" title="Nenhuma sessão no filtro selecionado" message="Ajuste os filtros para ver outros registros." [compact]="true" />
+    </div>
+  } @else {
+    <div class="sm-card p-0">
+      <div class="sm-table-wrap">
+        <table class="sm-table">
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Matéria</th>
+              <th>Projeto</th>
+              <th>Horário</th>
+              <th>Duração</th>
+              <th>Conteúdo</th>
+              <th class="text-end"><span class="visually-hidden">Ações</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (s of filtered(); track s.id) {
+              <tr>
+                <td class="text-nowrap">{{ s.start | date: 'dd/MM/yyyy' }}</td>
+                <td class="text-nowrap">
+                  @if (subjectOf(s); as subject) {
+                    <span class="d-inline-flex align-items-center gap-2"><span class="color-dot" [style.background]="subject.color"></span>{{ subject.name }}</span>
+                  } @else {
+                    <span class="text-subtle">Sem matéria</span>
+                  }
+                </td>
+                <td class="text-muted">{{ projectName(s) }}</td>
+                <td class="text-nowrap text-muted">{{ s.start | date: 'HH:mm' }}–{{ s.end | date: 'HH:mm' }}</td>
+                <td class="text-nowrap fw-500">{{ s.durationSeconds | duration }}</td>
+                <td class="content-cell">
+                  <div class="truncate">{{ s.content || '—' }}</div>
+                  @if (s.notes || taskTitle(s)) {
+                    <button type="button" class="btn btn-link btn-sm p-0 small" (click)="toggleExpand(s.id)" [attr.aria-expanded]="expandedId() === s.id">
+                      {{ expandedId() === s.id ? 'Ocultar detalhes' : 'Ver detalhes' }}
+                    </button>
+                  }
+                  @if (expandedId() === s.id) {
+                    <div class="session-details">
+                      @if (taskTitle(s); as title) {
+                        <div><span class="text-subtle">Tarefa:</span> {{ title }}</div>
+                      }
+                      @if (s.notes) {
+                        <div class="notes"><span class="text-subtle">Observações:</span> {{ s.notes }}</div>
+                      }
+                      <div class="text-subtle">{{ s.source === 'timer' ? 'Registrada pelo cronômetro' : 'Registro manual' }}</div>
+                    </div>
+                  }
+                </td>
+                <td class="text-end text-nowrap">
+                  <a class="btn btn-icon btn-sm" [routerLink]="['/history', s.id, 'edit']" title="Editar" aria-label="Editar sessão"><i class="bi bi-pencil"></i></a>
+                  <button type="button" class="btn btn-icon btn-sm danger" title="Excluir" aria-label="Excluir sessão" (click)="remove(s)"><i class="bi bi-trash"></i></button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+}

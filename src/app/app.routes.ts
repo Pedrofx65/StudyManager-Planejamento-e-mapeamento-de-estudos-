@@ -31,5 +31,14 @@ export const routes: Routes = [
       { path: ':id/edit', title: title('Editar matéria'), loadComponent: () => import('./features/subjects/subject-form').then((m) => m.SubjectForm) },
     ],
   },
+  { path: 'timer', title: title('Cronômetro'), loadComponent: () => import('./features/timer/timer-page').then((m) => m.TimerPage) },
+  {
+    path: 'history',
+    children: [
+      { path: '', title: title('Histórico'), loadComponent: () => import('./features/history/history-page').then((m) => m.HistoryPage) },
+      { path: 'new', title: title('Registrar estudo'), loadComponent: () => import('./features/history/session-form').then((m) => m.SessionForm) },
+      { path: ':id/edit', title: title('Editar sessão'), loadComponent: () => import('./features/history/session-form').then((m) => m.SessionForm) },
+    ],
+  },
   { path: '**', redirectTo: '' },
 ];

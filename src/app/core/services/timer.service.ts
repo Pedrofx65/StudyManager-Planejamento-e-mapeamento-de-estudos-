@@ -19,6 +19,9 @@ interface TimerState extends TimerSelection {
   segmentStartedAt: number | null;
   /** Tempo acumulado dos trechos anteriores (ms). */
   accumulatedMs: number;
+  /** Rascunho do conteúdo estudado e das observações. */
+  content: string;
+  notes: string;
 }
 
 const IDLE_STATE: TimerState = {
@@ -29,6 +32,8 @@ const IDLE_STATE: TimerState = {
   subjectId: null,
   projectId: null,
   taskId: null,
+  content: '',
+  notes: '',
 };
 
 /**
@@ -51,6 +56,8 @@ export class TimerService {
   readonly status = computed(() => this.state().status);
   readonly isActive = computed(() => this.state().status !== 'idle');
   readonly startedAt = computed(() => this.state().startedAt);
+  readonly content = computed(() => this.state().content);
+  readonly notes = computed(() => this.state().notes);
   readonly selection = computed<TimerSelection>(() => {
     const { subjectId, projectId, taskId } = this.state();
     return { subjectId, projectId, taskId };
@@ -75,6 +82,11 @@ export class TimerService {
   /** Atualiza matéria/projeto/tarefa (permitido também durante a sessão). */
   setSelection(selection: Partial<TimerSelection>): void {
     this.setState({ ...this.state(), ...selection });
+  }
+
+  /** Guarda o rascunho de conteúdo/observações da sessão atual. */
+  setDraft(draft: { content?: string; notes?: string }): void {
+    this.setState({ ...this.state(), ...draft });
   }
 
   start(selection?: Partial<TimerSelection>): void {
@@ -110,7 +122,7 @@ export class TimerService {
   }
 
   /** Finaliza e registra a sessão. Retorna null se não houver tempo contado. */
-  finish(details: { content: string; notes: string }): StudySession | null {
+  finish(): StudySession | null {
     const s = this.state();
     if (s.status === 'idle' || !s.startedAt) return null;
     const duration = this.elapsedSeconds();
@@ -123,8 +135,8 @@ export class TimerService {
       start: s.startedAt,
       end: new Date().toISOString(),
       durationSeconds: duration,
-      content: details.content.trim(),
-      notes: details.notes.trim(),
+      content: s.content.trim(),
+      notes: s.notes.trim(),
       source: 'timer',
     });
   }

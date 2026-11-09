@@ -1,0 +1,81 @@
+<app-page-header
+  [title]="isEdit() ? 'Editar sessão' : 'Registrar estudo'"
+  subtitle="Registre um período de estudo feito sem o cronômetro."
+/>
+
+@if (notFound()) {
+  <div class="sm-card text-center py-5">
+    <p class="mb-3">Sessão não encontrada.</p>
+    <a routerLink="/history" class="btn btn-ghost btn-sm">Voltar para o histórico</a>
+  </div>
+} @else {
+  <form class="sm-card form-card" [formGroup]="form" (ngSubmit)="save()" novalidate>
+    <div class="row g-3">
+      <div class="col-sm-4">
+        <label class="form-label" for="date">Data *</label>
+        <input id="date" type="date" class="form-control" formControlName="date" [class.is-invalid]="isInvalid('date')" />
+        <app-field-error [control]="form.controls.date" [show]="isInvalid('date')" />
+      </div>
+      <div class="col-6 col-sm-4">
+        <label class="form-label" for="startTime">Início *</label>
+        <input id="startTime" type="time" class="form-control" formControlName="startTime" [class.is-invalid]="isInvalid('startTime')" />
+        <app-field-error [control]="form.controls.startTime" [show]="isInvalid('startTime')" />
+      </div>
+      <div class="col-6 col-sm-4">
+        <label class="form-label" for="endTime">Término *</label>
+        <input id="endTime" type="time" class="form-control" formControlName="endTime" [class.is-invalid]="isInvalid('endTime') || timeRangeInvalid()" />
+        <app-field-error [control]="form.controls.endTime" [show]="isInvalid('endTime')" />
+        @if (timeRangeInvalid()) {
+          <div class="invalid-feedback d-block">O término deve ser depois do início.</div>
+        }
+      </div>
+      <div class="col-12">
+        <span class="sm-chip primary"><i class="bi bi-clock"></i>Duração: {{ durationSeconds() | duration }}</span>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label" for="subjectId">Matéria</label>
+        <select id="subjectId" class="form-select" formControlName="subjectId">
+          <option value="">Sem matéria</option>
+          @for (s of subjects.sorted(); track s.id) {
+            <option [value]="s.id">{{ s.name }}</option>
+          }
+        </select>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label" for="projectId">Projeto</label>
+        <select id="projectId" class="form-select" formControlName="projectId">
+          <option value="">Sem projeto</option>
+          @for (p of projects.sorted(); track p.id) {
+            <option [value]="p.id">{{ p.name }}</option>
+          }
+        </select>
+      </div>
+      <div class="col-12">
+        <label class="form-label" for="taskId">Tarefa <span class="text-subtle">(o tempo é somado na tarefa)</span></label>
+        <select id="taskId" class="form-select" formControlName="taskId">
+          <option value="">Nenhuma tarefa</option>
+          @for (t of availableTasks(); track t.id) {
+            <option [value]="t.id">{{ t.title }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="col-12">
+        <label class="form-label" for="content">Conteúdo estudado</label>
+        <input id="content" class="form-control" formControlName="content" placeholder="Ex.: Atos administrativos" [class.is-invalid]="isInvalid('content')" />
+        <app-field-error [control]="form.controls.content" [show]="isInvalid('content')" />
+      </div>
+      <div class="col-12">
+        <label class="form-label" for="notes">Observações pessoais</label>
+        <textarea id="notes" class="form-control" rows="3" formControlName="notes" placeholder="O que aprendeu, dúvidas, pontos para revisar..." [class.is-invalid]="isInvalid('notes')"></textarea>
+        <app-field-error [control]="form.controls.notes" [show]="isInvalid('notes')" />
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <a routerLink="/history" class="btn btn-ghost">Cancelar</a>
+      <button type="submit" class="btn btn-primary">{{ isEdit() ? 'Salvar alterações' : 'Registrar' }}</button>
+    </div>
+  </form>
+}

@@ -1,0 +1,121 @@
+<app-page-header title="Cronômetro de estudos" subtitle="O tempo continua contando mesmo se você trocar de página ou recarregar." />
+
+<div class="timer-layout">
+  <section class="sm-card timer-card" [style.--accent]="selectedSubject()?.color ?? 'var(--sm-primary)'">
+    <div class="timer-status" [class]="'status-' + timer.status()">
+      @switch (timer.status()) {
+        @case ('running') { <span class="dot"></span>Estudando }
+        @case ('paused') { <i class="bi bi-pause-fill"></i>Pausado }
+        @default { <i class="bi bi-stopwatch"></i>Pronto para começar }
+      }
+    </div>
+
+    <div class="timer-clock" aria-live="off">{{ timer.elapsedSeconds() | duration: 'clock' }}</div>
+
+    @if (timer.startedAt(); as startedAt) {
+      <div class="text-muted small mb-3">Início às {{ startedAt | date: 'HH:mm' }}</div>
+    } @else {
+      <div class="text-muted small mb-3">Selecione o que vai estudar e clique em iniciar.</div>
+    }
+
+    <div class="timer-controls">
+      @switch (timer.status()) {
+        @case ('idle') {
+          <button type="button" class="btn btn-primary btn-lg" (click)="start()"><i class="bi bi-play-fill me-1"></i>Iniciar</button>
+        }
+        @case ('running') {
+          <button type="button" class="btn btn-ghost btn-lg" (click)="timer.pause()"><i class="bi bi-pause-fill me-1"></i>Pausar</button>
+          <button type="button" class="btn btn-primary btn-lg" (click)="finish()"><i class="bi bi-stop-fill me-1"></i>Finalizar</button>
+        }
+        @case ('paused') {
+          <button type="button" class="btn btn-ghost btn-lg" (click)="timer.resume()"><i class="bi bi-play-fill me-1"></i>Continuar</button>
+          <button type="button" class="btn btn-primary btn-lg" (click)="finish()"><i class="bi bi-stop-fill me-1"></i>Finalizar</button>
+        }
+      }
+    </div>
+    @if (timer.isActive()) {
+      <button type="button" class="btn btn-link btn-sm text-muted mt-2" (click)="discard()">Descartar sessão</button>
+    }
+
+    <div class="timer-fields">
+      <div class="row g-3 text-start">
+        <div class="col-md-6">
+          <label class="form-label" for="timer-subject">Matéria</label>
+          <select id="timer-subject" class="form-select" (change)="selectSubject($any($event.target).value)">
+            <option value="" [selected]="!timer.selection().subjectId">Sem matéria</option>
+            @for (s of subjects.sorted(); track s.id) {
+              <option [value]="s.id" [selected]="s.id === timer.selection().subjectId">{{ s.name }}</option>
+            }
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="timer-project">Projeto</label>
+          <select id="timer-project" class="form-select" (change)="selectProject($any($event.target).value)">
+            <option value="" [selected]="!timer.selection().projectId">Sem projeto</option>
+            @for (p of projects.sorted(); track p.id) {
+              <option [value]="p.id" [selected]="p.id === timer.selection().projectId">{{ p.name }}</option>
+            }
+          </select>
+        </div>
+        <div class="col-12">
+          <label class="form-label" for="timer-task">Tarefa <span class="text-subtle">(opcional — o tempo é somado na tarefa)</span></label>
+          <select id="timer-task" class="form-select" (change)="selectTask($any($event.target).value)">
+            <option value="" [selected]="!timer.selection().taskId">Nenhuma tarefa</option>
+            @for (t of availableTasks(); track t.id) {
+              <option [value]="t.id" [selected]="t.id === timer.selection().taskId">{{ t.title }}</option>
+            }
+          </select>
+        </div>
+        <div class="col-12">
+          <label class="form-label" for="timer-content">Conteúdo estudado</label>
+          <input id="timer-content" class="form-control" maxlength="200" placeholder="Ex.: Controle de constitucionalidade" [value]="timer.content()" (input)="timer.setDraft({ content: $any($event.target).value })" />
+        </div>
+        <div class="col-12">
+          <label class="form-label" for="timer-notes">Observações</label>
+          <textarea id="timer-notes" class="form-control" rows="2" maxlength="1000" placeholder="Dúvidas, pontos para revisar..." [value]="timer.notes()" (input)="timer.setDraft({ notes: $any($event.target).value })"></textarea>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <aside class="gap-grid">
+    <section class="sm-card">
+      <div class="sm-card-header">
+        <h2 class="sm-card-title">Meta semanal</h2>
+        <a routerLink="/settings" class="small">Ajustar</a>
+      </div>
+      <div class="d-flex align-items-baseline gap-2 mb-2">
+        <span class="fs-4 fw-semibold">{{ weekSeconds() + (timer.isActive() ? timer.elapsedSeconds() : 0) | duration }}</span>
+        <span class="text-muted small">de {{ weeklyGoalHours() }}h</span>
+      </div>
+      <app-progress-bar [value]="weekProgress()" label="Meta semanal" />
+      <div class="text-subtle small mt-2">Hoje: {{ todaySeconds() | duration }} em {{ todaySessions().length }} {{ todaySessions().length === 1 ? 'sessão' : 'sessões' }}</div>
+    </section>
+
+    <section class="sm-card">
+      <div class="sm-card-header">
+        <h2 class="sm-card-title">Sessões recentes</h2>
+        <a routerLink="/history" class="small">Ver histórico</a>
+      </div>
+      @if (recentSessions().length === 0) {
+        <app-empty-state icon="bi-clock-history" title="Nenhuma sessão registrada" message="Suas sessões aparecerão aqui ao finalizar o cronômetro." [compact]="true" />
+      } @else {
+        <ul class="sm-list">
+          @for (s of recentSessions(); track s.id) {
+            <li>
+              <span class="color-dot" [style.background]="subjectColor(s.subjectId)"></span>
+              <div class="min-w-0 flex-grow-1">
+                <div class="truncate fw-500">{{ subjectName(s.subjectId) }}</div>
+                <div class="text-subtle small truncate">
+                  {{ s.start | date: 'dd/MM · HH:mm' }}–{{ s.end | date: 'HH:mm' }}
+                  @if (s.content) { · {{ s.content }} }
+                </div>
+              </div>
+              <span class="sm-chip">{{ s.durationSeconds | duration }}</span>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+  </aside>
+</div>
