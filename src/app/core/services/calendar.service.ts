@@ -86,7 +86,7 @@ export class CalendarService {
         date: day,
         time: null,
         color: CALENDAR_KIND_META.session.color,
-        done: true,
+        done: false,
         overdue: false,
         link: null,
         eventId: null,

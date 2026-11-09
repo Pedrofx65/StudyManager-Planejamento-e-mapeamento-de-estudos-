@@ -1,6 +1,6 @@
 <app-page-header
   title="Minhas tarefas"
-  [subtitle]="summary().pending + ' pendentes · ' + summary().done + ' concluídas' + (summary().overdue ? ' · ' + summary().overdue + ' atrasadas' : '')"
+  [subtitle]="summary().pending + ' pendentes · ' + summary().done + ' concluídas' + (summary().overdue ? ' · ' + summary().overdue + (summary().overdue === 1 ? ' atrasada' : ' atrasadas') : '')"
 >
   <div class="view-toggle" role="group" aria-label="Modo de visualização">
     <button type="button" class="btn btn-sm" [class.active]="view() === 'board'" [attr.aria-pressed]="view() === 'board'" (click)="setView('board')">

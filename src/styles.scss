@@ -155,7 +155,7 @@ a { text-decoration: none; }
 .sm-list > li { display: flex; align-items: center; gap: 0.75rem; padding: 0.65rem 0; border-bottom: 1px solid var(--sm-border); }
 .sm-list > li:last-child { border-bottom: 0; }
 
-.sm-table-wrap { overflow-x: auto; }
+.sm-table-wrap { overflow-x: auto; position: relative; }
 .sm-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
 .sm-table th { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--sm-text-subtle); font-weight: 600; padding: 0.6rem 0.75rem; border-bottom: 1px solid var(--sm-border); white-space: nowrap; text-align: left; }
 .sm-table td { padding: 0.7rem 0.75rem; border-bottom: 1px solid var(--sm-border); vertical-align: middle; }
@@ -182,7 +182,7 @@ a { text-decoration: none; }
 .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
 .min-w-0 { min-width: 0; }
 .fw-500 { font-weight: 500; }
-.gap-grid { display: grid; gap: 1rem; }
+.gap-grid { display: grid; gap: 1rem; grid-template-columns: minmax(0, 1fr); min-width: 0; }
 
 .filters-bar { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; margin-bottom: 1.25rem; }
 .filters-bar .form-select, .filters-bar .form-control { width: auto; min-width: 150px; flex: 0 1 auto; }

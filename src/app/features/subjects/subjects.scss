@@ -87,7 +87,7 @@
   align-items: start;
 }
 @media (max-width: 991.98px) {
-  .detail-grid { grid-template-columns: 1fr; }
+  .detail-grid { grid-template-columns: minmax(0, 1fr); }
 }
 
 .topic-item .topic-title { flex: 1; min-width: 0; cursor: pointer; }

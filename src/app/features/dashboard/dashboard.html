@@ -23,10 +23,10 @@
 } @else {
   <div class="stats-grid">
     <app-stat-card label="Projetos" [value]="stats().projects" icon="bi-folder2" tone="primary" [hint]="stats().activeProjects + ' em andamento'" />
-    <app-stat-card label="Tarefas pendentes" [value]="stats().pending" icon="bi-list-task" tone="warning" [hint]="stats().overdue ? stats().overdue + ' atrasadas' : 'Nenhuma atrasada'" />
+    <app-stat-card label="Tarefas pendentes" [value]="stats().pending" icon="bi-list-task" tone="warning" [hint]="stats().overdue === 1 ? '1 atrasada' : stats().overdue ? stats().overdue + ' atrasadas' : 'Nenhuma atrasada'" />
     <app-stat-card label="Tarefas concluídas" [value]="stats().done" icon="bi-check2-circle" tone="success" />
     <app-stat-card label="Matérias em andamento" [value]="stats().subjectsInProgress" icon="bi-book" tone="primary" [hint]="'de ' + stats().subjects + ' cadastradas'" />
-    <app-stat-card label="Horas de estudo" [value]="formatHours(stats().totalSeconds / 3600)" icon="bi-clock" tone="primary" [hint]="stats().sessions + ' sessões'" />
+    <app-stat-card label="Horas de estudo" [value]="formatHours(stats().totalSeconds / 3600)" icon="bi-clock" tone="primary" [hint]="stats().sessions + (stats().sessions === 1 ? ' sessão' : ' sessões')" />
     <app-stat-card label="Progresso geral" [value]="stats().progress + '%'" icon="bi-graph-up-arrow" tone="success" hint="Média das matérias" />
   </div>
 
@@ -50,7 +50,7 @@
           [values]="weekly().values"
           colors="#3987e5"
           [highlightIndex]="weekly().labels.length - 1"
-          [format]="formatHours"
+          [format]="formatHours" [axisFormat]="axisHours"
           [height]="240"
           ariaLabel="Horas estudadas nas últimas 8 semanas"
         />
@@ -73,7 +73,7 @@
           [values]="bySubject().values"
           [colors]="bySubject().colors"
           [horizontal]="true"
-          [format]="formatHours"
+          [format]="formatHours" [axisFormat]="axisHours"
           ariaLabel="Distribuição do tempo de estudo por matéria"
         />
       }

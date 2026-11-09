@@ -52,7 +52,8 @@ import { DurationPipe } from '../shared/pipes/duration.pipe';
       backdrop-filter: blur(10px); border-bottom: 1px solid var(--sm-border);
     }
     @media (max-width: 575.98px) { .topbar { padding: 0 1rem; } }
-    .today { color: var(--sm-text-muted); font-size: 0.85rem; text-transform: capitalize; }
+    .today { color: var(--sm-text-muted); font-size: 0.85rem; }
+    .today::first-letter { text-transform: uppercase; }
     .mini-timer { display: flex; align-items: center; gap: 0.25rem; padding: 0.15rem 0.2rem 0.15rem 0.7rem; border-radius: 8px; background: var(--sm-success-soft); border: 1px solid transparent; }
     .mini-timer.paused { background: var(--sm-warning-soft); }
     .mini-timer-link { display: flex; align-items: center; gap: 0.5rem; color: var(--sm-text); font-size: 0.82rem; min-width: 0; }

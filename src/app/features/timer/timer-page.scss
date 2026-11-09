@@ -5,7 +5,7 @@
   align-items: start;
 }
 @media (max-width: 991.98px) {
-  .timer-layout { grid-template-columns: 1fr; }
+  .timer-layout { grid-template-columns: minmax(0, 1fr); }
 }
 
 .timer-card {

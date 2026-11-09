@@ -48,6 +48,8 @@ export class BarChart {
   readonly ariaLabel = input('Gráfico');
   /** Formata valores no tooltip, no eixo e na tabela acessível. */
   readonly format = input<(value: number) => string>((v) => String(v));
+  /** Formata os rótulos do eixo de valores (padrão: o mesmo de `format`). */
+  readonly axisFormat = input<((value: number) => string) | null>(null);
   /** Destaca uma barra (índice) mantendo as demais mais suaves. */
   readonly highlightIndex = input<number | null>(null);
 
@@ -67,6 +69,7 @@ export class BarChart {
       const values = this.values();
       const horizontal = this.horizontal();
       const format = this.format();
+      const axisFormat = this.axisFormat() ?? format;
       const highlight = this.highlightIndex();
       const baseColors = this.colors();
 
@@ -126,13 +129,13 @@ export class BarChart {
             [horizontal ? 'y' : 'x']: {
               grid: { display: false },
               border: { display: false },
-              ticks: { color: text, font: { size: 11 } },
+              ticks: { color: text, font: { size: 11 }, maxRotation: 0, autoSkip: true },
             },
             [horizontal ? 'x' : 'y']: {
               beginAtZero: true,
               grid: { color: grid, drawTicks: false },
               border: { display: false },
-              ticks: { color: text, font: { size: 11 }, padding: 8, maxTicksLimit: 5, callback: (v) => format(Number(v)) },
+              ticks: { color: text, font: { size: 11 }, padding: 8, maxTicksLimit: 5, callback: (v) => axisFormat(Number(v)) },
             },
           },
         },

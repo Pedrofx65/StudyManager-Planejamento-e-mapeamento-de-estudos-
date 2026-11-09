@@ -1,59 +1,93 @@
-# StudyManager
+# 📚 Study Manager
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.29.
+Aplicação web para gerenciar **projetos, tarefas, matérias e tempo de estudo**, com dashboard de produtividade, quadro Kanban, cronômetro persistente e calendário de prazos.
 
-## Development server
+Desenvolvida com **Angular 21** (componentes standalone, signals e change detection zoneless), **TypeScript** em modo estrito, **Bootstrap 5** e **Chart.js**. Os dados ficam salvos no **LocalStorage** do navegador.
 
-To start a local development server, run:
+---
 
-```bash
-ng serve
+## ✨ Funcionalidades
+
+| Área | O que faz |
+|---|---|
+| **Dashboard** | Projetos, tarefas pendentes/concluídas, matérias em andamento, horas totais, progresso geral, próximos prazos, tarefas prioritárias e gráficos de horas por semana e tempo por matéria |
+| **Projetos** | CRUD completo, filtros (status, prioridade, busca), ordenação e progresso calculado automaticamente pelas tarefas concluídas |
+| **Tarefas** | CRUD, quadro **Kanban com arrastar e soltar** (Angular CDK), visão em lista, filtros por projeto, matéria, prioridade e prazo, tempo estimado × utilizado |
+| **Matérias** | Cor de identificação, categoria, horas planejadas × estudadas, lista de conteúdos com marcação de concluído e percentual de conclusão |
+| **Cronômetro** | Iniciar, pausar, continuar, finalizar e descartar; vínculo com matéria, projeto e tarefa; **continua contando ao trocar de página, recarregar ou fechar a aba** |
+| **Histórico** | Sessões com data, horário, duração, conteúdo e observações; filtros por matéria, projeto e período; registro e edição manual |
+| **Calendário** | Visão mensal com prazos de tarefas e projetos, provas, metas, sessões planejadas e realizadas; destaque de prazos próximos e atrasados |
+| **Configurações** | Nome, tema claro/escuro, meta semanal, janela de "prazo próximo", backup em JSON (exportar/importar), dados de demonstração e limpeza |
+
+## 🛠️ Tecnologias
+
+- Angular 21 — standalone components, signals (`signal`, `computed`, `effect`), novo control flow (`@if`, `@for`), lazy loading de rotas, zoneless
+- TypeScript (strict)
+- Reactive Forms tipados com validadores customizados
+- Angular CDK Drag & Drop
+- Bootstrap 5 + Bootstrap Icons, com tema próprio via variáveis CSS
+- Chart.js (registrando apenas os módulos usados)
+- Vitest para testes unitários
+
+## 🏗️ Arquitetura
+
+```
+src/app/
+├── core/                  # Regras de negócio (singletons)
+│   ├── models/            # Interfaces: Project, Task, Subject, StudySession, CalendarEvent, AppSettings
+│   ├── services/          # StorageService, EntityStore (base) e serviços de domínio
+│   └── utils/             # Datas, IDs, rótulos e validadores
+├── layout/                # Sidebar e topbar (com mini-cronômetro)
+├── shared/                # Componentes, pipes e diretivas reutilizáveis
+│   ├── components/        # stat-card, progress-bar, empty-state, bar-chart, badges, confirm-dialog, toasts...
+│   ├── forms/             # BaseForm (exibição de erros e envio)
+│   └── pipes/             # duration, relativeDay
+└── features/              # Uma pasta por página (carregadas sob demanda)
+    ├── dashboard/  projects/  tasks/  subjects/
+    └── timer/  history/  calendar/  settings/
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+**Fluxo de dados:** `Componentes → Serviços de domínio (signals) → StorageService → LocalStorage`
 
-## Code scaffolding
+- Cada serviço de domínio estende `EntityStore<T>`, que mantém a coleção em um `signal` e grava no LocalStorage a cada alteração.
+- Valores derivados (progresso, totais, quadro Kanban, itens do calendário) são `computed`, sempre consistentes com os dados.
+- Apenas o `StorageService` acessa o LocalStorage. Trocar por uma API REST no futuro exige mudar só a camada de serviços.
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+### Decisões importantes
 
-```bash
-ng generate component component-name
-```
+- **Cronômetro baseado em timestamps:** o serviço guarda o horário de início e o tempo acumulado, e não um contador. Assim o tempo continua correto ao navegar, recarregar ou fechar a aba.
+- **Progresso do projeto** = % de tarefas concluídas.
+- **Progresso da matéria** = % de conteúdos concluídos; sem conteúdos cadastrados, usa horas estudadas ÷ horas planejadas.
+- **Progresso geral** = média das matérias ponderada pelas horas planejadas.
+- **Exclusões não apagam histórico:** ao excluir um projeto ou uma matéria, as tarefas e sessões são mantidas e apenas desvinculadas.
+- **Cores acessíveis:** a paleta sugerida para as matérias foi validada quanto a contraste e separação para daltonismo, nos temas claro e escuro.
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+## 🚀 Como executar
 
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
-
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+Pré-requisitos: **Node.js 20.19+ ou 22.12+** e npm.
 
 ```bash
-ng test
+npm install
+npm start            # http://localhost:4200
 ```
 
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
+Outros comandos:
 
 ```bash
-ng e2e
+npm run build        # build de produção em dist/
+npm test             # testes unitários (Vitest)
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+> Para explorar rapidamente, abra **Configurações → Carregar dados de demonstração** (ou use o botão no dashboard vazio).
 
-## Additional Resources
+## 🧪 Testes
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+Os testes cobrem as regras de negócio centrais:
+
+- `TaskService`: ordenação, movimentação no Kanban, data de conclusão, priorização
+- Progresso de projetos e matérias, além da soma de tempo nas tarefas
+- `TimerService`: pausas, restauração após recarregar, finalização e descarte
+
+## 📄 Licença
+
+Projeto pessoal para estudo e portfólio.

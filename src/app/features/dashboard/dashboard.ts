@@ -42,6 +42,7 @@ export class Dashboard {
 
   protected readonly meta = CALENDAR_KIND_META;
   protected readonly formatHours = (hours: number): string => formatDuration(hours * 3600);
+  protected readonly axisHours = (hours: number): string => `${hours}h`;
 
   protected readonly hasData = computed(() =>
     this.projects.items().length + this.tasks.items().length + this.subjects.items().length + this.sessions.items().length > 0,
@@ -83,7 +84,7 @@ export class Dashboard {
       totals[index] += s.durationSeconds / 3600;
     }
     const labels = starts.map((d, i) =>
-      i === WEEKS - 1 ? 'Esta semana' : d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
+      i === WEEKS - 1 ? 'Atual' : d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
     );
     const values = totals.map((h) => Math.round(h * 100) / 100);
     const average = values.slice(0, -1).reduce((a, b) => a + b, 0) / (WEEKS - 1);

@@ -16,12 +16,12 @@
 
 .calendar-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 340px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 340px);
   gap: 1rem;
   align-items: start;
 }
 @media (max-width: 1199.98px) {
-  .calendar-layout { grid-template-columns: 1fr; }
+  .calendar-layout { grid-template-columns: minmax(0, 1fr); }
 }
 
 .calendar-card { padding: 1rem; }
@@ -86,7 +86,7 @@
   .day-dots .color-dot { width: 6px; height: 6px; }
 }
 
-.day-title { text-transform: capitalize; }
+.day-title::first-letter { text-transform: uppercase; }
 .agenda-link { background: none; border: 0; padding: 0; text-align: left; color: var(--sm-text); }
 .agenda-link:hover .truncate { color: var(--sm-primary); }
 .agenda-link .done { text-decoration: line-through; color: var(--sm-text-subtle); }
